@@ -235,7 +235,7 @@ class EventSelector: public Tool {
   bool fThroughGoing = false;
   bool fEventCutStatus;
   bool fIsMC; 
-  int fTriggerWord;
+  int fTriggerWord=0;
   int fRecoPDG;
 
   bool get_mrd = false;

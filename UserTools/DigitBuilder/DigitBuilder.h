@@ -81,6 +81,7 @@ class DigitBuilder: public Tool {
   double fDigitChargeThr;
   std::string path_chankeymap;
   std::string singlePEgains;
+  int striphit; //0 all LAPPD Hits as true; 1 average all times per strip; 2 use first time for each strip
 
   Geometry* fGeometry=nullptr;    ///< ANNIE Geometry
   TRandom3 frand;  ///< Random number generator

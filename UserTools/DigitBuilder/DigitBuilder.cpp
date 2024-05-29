@@ -43,6 +43,7 @@ bool DigitBuilder::Initialise(std::string configfile, DataModel &data){
   m_variables.Get("DigitChargeThr",fDigitChargeThr);
   m_variables.Get("ChankeyToPMTIDMap",path_chankeymap);
   m_variables.Get("SinglePEGains",singlePEgains);
+  m_variables.Get("StripHit", striphit);
 
   /// Construct the other objects we'll be setting at event level,
   fDigitList = new std::vector<RecoDigit>;
@@ -342,39 +343,111 @@ bool DigitBuilder::BuildMCLAPPDRecoDigit() {
       if(!isSelectedLAPPD && fLAPPDId.size()>0) continue;
       if(verbosity>2){
         std::cout << "Loading in digits for LAPPDID " << LAPPDId << std::endl;
+        std::cout << "located: ";
+        det->GetPositionInTank().Print();
+        std::cout << "directed: ";
+        det->GetDetectorDirection().Print();
       }
 
-			if(det->GetDetectorElement()=="LAPPD"){ // redundant, MCLAPPDHits are LAPPD hitss
-				std::vector<MCLAPPDHit>& hits = apair.second;
-				for(MCLAPPDHit& ahit : hits){
-					//if(v_message<verbosity) ahit.Print(); // << VERY verbose
-					// an LAPPDHit has adds (global x-y-z) position, (in-tile x-y) local position
-					// and time psecs
-					// convert the WCSim coordinates to the ANNIEreco coordinates
-					// convert the unit from m to cm
-					pos_reco.SetX(ahit.GetPosition().at(0)*100.+xshift); //cm
-					pos_reco.SetY(ahit.GetPosition().at(1)*100.+yshift); //cm
-					pos_reco.SetZ(ahit.GetPosition().at(2)*100.+zshift); //cm
-					calT = ahit.GetTime();  // 
-					calT = frand.Gaus(calT, 0.1); // time is smeared with 100 ps time resolution. Harded-coded for now.
-					calQ = ahit.GetCharge();
-          if (verbosity>4) { 
-            std::cout << "LAPPD position (X<Y<Z): " << 
-                    to_string(pos_reco.X()) << "," << to_string(pos_reco.Y()) <<
-                    "," << to_string(pos_reco.Z()) << std::endl;
-            std::cout << "LAPPD Charge,Time: " << to_string(calQ) << "," <<
-                    to_string(calT) << std::endl;
+      if (det->GetDetectorElement() == "LAPPD") { // redundant, MCLAPPDHits are LAPPD hitss
+          std::vector<MCLAPPDHit>& hits = apair.second;
+          std::vector<double> sumposX;
+          std::vector<double> sumposY;
+          std::vector<double> sumposZ;
+          std::vector<double> sumT;
+          double posX;
+          std::vector<int> nHitsOnStrip;
+          int a;
+          for (int i = 0; i < 28; i++) {
+              sumposX.push_back(0);
+              sumposY.push_back(0);
+              sumposZ.push_back(0);
+              sumT.push_back(0);
+              nHitsOnStrip.push_back(0);
           }
-					// I found the charge is 0 for all the hits. In order to test the code, 
-					// here I just set the charge to 1. We should come back to this later. (Jingbo Wang)
-					calQ = 1.;
-					digitType = RecoDigit::lappd_v0;
-					RecoDigit recoDigit(region, pos_reco, calT, calQ, digitType,LAPPDId);
-					//if(v_message<verbosity) recoDigit.Print();
-				  //make some cuts here. It will be moved to the Hitcleaning tool
-				  if(calT>40 || calT<-10) continue; // cut off delayed hits
-				  fDigitList->push_back(recoDigit);
+				for(MCLAPPDHit& ahit : hits){
+                    if (striphit == 0) {
+                        //if(v_message<verbosity) ahit.Print(); // << VERY verbose
+                        // an LAPPDHit has adds (global x-y-z) position, (in-tile x-y) local position
+                        // and time psecs
+                        // convert the WCSim coordinates to the ANNIEreco coordinates
+                        // convert the unit from m to cm
+                        pos_reco.SetX(ahit.GetPosition().at(0) * 100. + xshift); //cm
+                        pos_reco.SetY(ahit.GetPosition().at(1) * 100. + yshift); //cm
+                        pos_reco.SetZ(ahit.GetPosition().at(2) * 100. + zshift); //cm
+                        calT = ahit.GetTime();  // 
+                        calT = frand.Gaus(calT, 0.1); // time is smeared with 100 ps time resolution. Harded-coded for now.
+                        calQ = ahit.GetCharge();
+                        if (verbosity > 4) {
+                            std::cout << "LAPPD position (X<Y<Z): " <<
+                                to_string(pos_reco.X()) << "," << to_string(pos_reco.Y()) <<
+                                "," << to_string(pos_reco.Z()) << std::endl;
+                            std::cout << "LAPPD Charge,Time: " << to_string(calQ) << "," <<
+                                to_string(calT) << std::endl;
+                        }
+                        // I found the charge is 0 for all the hits. In order to test the code, 
+                        // here I just set the charge to 1. We should come back to this later. (Jingbo Wang)
+                        calQ = 1.;
+                        digitType = RecoDigit::lappd_v0;
+                        RecoDigit recoDigit(region, pos_reco, calT, calQ, digitType, LAPPDId);
+                        //if(v_message<verbosity) recoDigit.Print();
+                      //make some cuts here. It will be moved to the Hitcleaning tool
+                        if (calT > 40 || calT < -10) continue; // cut off delayed hits
+                        fDigitList->push_back(recoDigit);
+                    }
+                    else {
+                        posX = (ahit.GetPosition().at(0) * 100 + xshift) - (det->GetPositionInTank().X() * 100 + xshift);
+                        double dirX = det->GetDetectorDirection().X();
+                        double AngX = std::asin(dirX);
+                        int strip = (int)((posX / (20.* std::sin(AngX) / 28.)) + 14 - 1);
+                        if (strip > 27 || strip < 0) {
+                            Log("warning: LAPPD hit found off LAPPD: ", v_debug, verbosity);
+                            std::cout << "hit found on strip " << strip << endl;
+                            std::cout << "LAPPD truehit X,Y,Z: " << ahit.GetPosition().at(0) << ", ";
+                            std::cout << ahit.GetPosition().at(1) << ", ";
+                            std::cout << ahit.GetPosition().at(2) << endl;
+                            std::cout << "continuing loop without this hit." << endl;
+                            continue;
+                        }
+                        std::cout << "hit found on strip " << strip << endl;
+                        sumposX.at(strip) += ahit.GetPosition().at(0) * 100 + xshift;
+                        std::cout << "LAPPD truehit X,Y,Z: " << ahit.GetPosition().at(0) << ", ";
+                        sumposY.at(strip) += ahit.GetPosition().at(1) * 100 + yshift;
+                        std::cout << ahit.GetPosition().at(1) << ", ";
+                        sumposZ.at(strip) += ahit.GetPosition().at(2) * 100 + zshift;
+                        std::cout << ahit.GetPosition().at(2) << endl;
+                        
+                        if ((striphit == 3 && nHitsOnStrip.at(strip) < 3) || (striphit==2 && nHitsOnStrip.at(strip) == 0) || striphit == 1) 
+                            sumT.at(strip) += frand.Gaus(calT, 0.1); // time is smeared with 100 ps time resolution. Harded-coded for now.
+                        nHitsOnStrip.at(strip) += 1;
+
+                    }
 				}
+                if (striphit != 0) {
+                    for (int strip = 0; strip < 28; strip++) {
+                        if (nHitsOnStrip.at(strip) != 0) {
+                            pos_reco.SetX(sumposX.at(strip) / nHitsOnStrip.at(strip));
+                            pos_reco.SetY(sumposY.at(strip) / nHitsOnStrip.at(strip));
+                            pos_reco.SetZ(sumposZ.at(strip) / nHitsOnStrip.at(strip));
+                            if(striphit == 1) calT = sumT.at(strip) / nHitsOnStrip.at(strip);
+                            if (striphit == 3) calT = sumT.at(strip) / 3;
+                            calQ = nHitsOnStrip.at(strip); //set to the number of hits for now.
+                            digitType = RecoDigit::lappd_v0;
+
+                            std::cout << "LAPPD ID: " << to_string(LAPPDId) << endl;
+                            std::cout << "LAPPD strip-hit position (X<Y<Z): " << to_string(pos_reco.X()) << "," << to_string(pos_reco.Y()) << "," << to_string(pos_reco.Z()) << endl;
+                            std::cout << "LAPPD strip-hit Charge,Time: " << to_string(calQ) << "," << to_string(calT) << endl;
+                            RecoDigit recoDigit(region, pos_reco, calT, calQ, digitType, LAPPDId);
+                            std::cout << "recoDigit created for striphit\n";
+                            fDigitList->push_back(recoDigit);
+                        }
+                    }
+                }
+                sumposX.clear();
+                sumposY.clear();
+                sumposZ.clear();
+                sumT.clear();
+                nHitsOnStrip.clear();
 			}
 		} // end loop over MCLAPPDHits
 	} else {

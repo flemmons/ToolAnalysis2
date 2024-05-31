@@ -1,0 +1,4 @@
+OutputFile /Data/HighEnergy/DGCheck.root
+ShowEvent 15
+verbosity 5
+

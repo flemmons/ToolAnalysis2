@@ -1,0 +1,7 @@
+#LAPPDSim
+PathToPulsecharacteristics  ./UserTools/LAPPDSim/pulsecharacteristics.root
+ArtificialEvent 0
+EventDisplay 0
+OutputFile bob.root
+SimOutLabel ABLSLAPPDData
+StripHits 0

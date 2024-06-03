@@ -172,12 +172,13 @@ bool HitCleaner::Execute(){
   	RecoDigit* recodigitptr = &(fDigitList->at(i));
     digits->push_back((RecoDigit*)recodigitptr);
   }
+  
   // Reset Filter
   // ============
   for(int n=0; n<int(digits->size()); n++ ) {
     digits->at(n)->ResetFilter();
   }
-
+  
   // Run Hit Cleaner
   // ================
   std::vector<RecoDigit*>* FilterDigitList = Run(digits);
@@ -290,7 +291,7 @@ std::vector<RecoDigit*>* HitCleaner::Run(std::vector<RecoDigit*>* myDigitList)
   
   // filter all digits
   // =================
-  myInputList = ResetDigits(myOutputList);
+  myInputList = ResetDigits(myOutputList); 
   myOutputList = (std::vector<RecoDigit*>*)(this->FilterAll(myInputList));
   myOutputList = FilterDigits(myOutputList);
   if( fConfig==HitCleaner::kNone ) return myOutputList;
@@ -330,6 +331,7 @@ std::vector<RecoDigit*>* HitCleaner::Run(std::vector<RecoDigit*>* myDigitList)
   return myOutputList;
 }
 
+// Set all filter status to 0 (default is 1)
 std::vector<RecoDigit*>* HitCleaner::ResetDigits(std::vector<RecoDigit*>* myDigitList)
 {
   for(int idigit=0; idigit<int(myDigitList->size()); idigit++ ){
@@ -691,7 +693,7 @@ std::vector<RecoCluster*>* HitCleaner::RecoClusters(std::vector<RecoDigit*>* myD
     }
   }
 
-  //std::cout <<"fClusterList->size() = "<<fClusterList->size()<<std::endl;
+  std::cout <<"Number of clusters = "<<fClusterList->size()<<std::endl;
   // return vector of clusters
   // =========================
   return fClusterList;
@@ -738,3 +740,4 @@ std::vector<RecoDigit*>* HitCleaner::FilterByTruthInfo(std::vector<RecoDigit*>* 
   
   return fFilterByTruthInfo;
 }
+

@@ -52,6 +52,7 @@ if (tool=="MRDPulseFinder") ret=new MRDPulseFinder;
 if (tool=="LAPPDAnalysis") ret=new LAPPDAnalysis;
 if (tool=="ExampleOverTool") ret=new ExampleOverTool;
 if (tool=="PhaseIITreeMaker") ret=new PhaseIITreeMaker;
+if (tool=="PhaseIITreeMakerDOE") ret=new PhaseIITreeMakerDOE;
 if (tool=="VertexGeometryCheck") ret=new VertexGeometryCheck;
 if (tool=="LikelihoodFitterCheck") ret=new LikelihoodFitterCheck;
 if (tool=="EventSelector") ret=new EventSelector;

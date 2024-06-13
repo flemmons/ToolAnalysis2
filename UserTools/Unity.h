@@ -164,3 +164,4 @@
 #include "PythonScript.h"
 #include "MeanTimeCheck.h"
 #include "VtxSeedFineGrid.h"
+#include "DirectionGridCheck.h"

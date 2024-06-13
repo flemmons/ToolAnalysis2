@@ -103,7 +103,7 @@ void FoMCalculator::ConePropertiesFoM(double coneEdge, double& coneFOM)
   double fom = -9999.;
 
   for( int idigit=0; idigit<this->fVtxGeo->GetNDigits(); idigit++ ){ 	
-    if( this->fVtxGeo->IsFiltered(idigit) && this->fVtxGeo->GetDigitType(idigit) == RecoDigit::PMT8inch){
+    if( this->fVtxGeo->IsFiltered(idigit) /* && this->fVtxGeo->GetDigitType(idigit) == RecoDigit::PMT8inch*/) {
       deltaAngle = this->fVtxGeo->GetAngle(idigit) - coneEdge;
       digitCharge = this->fVtxGeo->GetDigitQ(idigit);
 
@@ -445,7 +445,7 @@ void FoMCalculator::ExtendedVertexChi2(double vtxX, double vtxY, double vtxZ, do
 
 	double fTimeFitWeight = this->fTimeFitWeight;
 	double fConeFitWeight = this->fConeFitWeight;
-	vtxFOM = (fTimeFitWeight*timeFOM + fConeFitWeight * coneFOM) / (fTimeFitWeight + fConeFitWeight);
+    vtxFOM = (fTimeFitWeight * timeFOM + fConeFitWeight * coneFOM) / (fTimeFitWeight + fConeFitWeight);
 
 	// calculate overall figure of merit
 	// =================================

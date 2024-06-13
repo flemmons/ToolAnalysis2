@@ -1,9 +1,20 @@
-verbose 3
+verbose 5
 
-muonRecoDebug_fill 0
-muonMCTruth_fill 1
+IsData 0
+RecoDebug_fill 1
+TankReco_fill 1
+MCTruth_fill 1
 muonTruthRecoDiff_fill 1
+#pionKaonCount_fill 0
+TankHitInfo_fill 1
+#MRDHitInfo_fill 1
+TankRecoDigitInfo_fill 1
+#TankClusterProcessing 1
+#MRDClusterProcessing 1
+fillCleanEventsOnly 0
+#MRDReco_fill 0
+TriggerProcessing 1
 
-OutputFile /ToolAnalysis/ToolAnalysisDoE_PMTOnly.ntuple.root
+OutputFile /Jingbo/vtxreco-DOE-test.root
 NumEventsWritten 2000
 

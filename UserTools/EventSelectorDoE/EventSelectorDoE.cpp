@@ -16,9 +16,6 @@ bool EventSelectorDoE::Initialise(std::string configfile, DataModel &data){
   m_variables.Get("verbosity",verbosity);
   m_variables.Get("MCTruthCut", fMCTruthCut);
   m_variables.Get("PromptTrigOnly", fPromptTrigOnly);
-
-  /// Construct the other objects we'll be setting at event level,
-  fMuonVertex = new RecoVertex();
   
   // Make the RecoDigit Store if it doesn't exist
   int recoeventexists = m_data->Stores.count("RecoEvent");
@@ -89,7 +86,6 @@ bool EventSelectorDoE::Execute(){
 
 bool EventSelectorDoE::Finalise(){
   if(verbosity>0) cout<<"EventSelectorDoE exitting"<<endl;
-  delete fMuonVertex;
   return true;
 }
 

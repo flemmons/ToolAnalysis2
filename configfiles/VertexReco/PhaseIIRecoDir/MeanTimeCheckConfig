@@ -1,0 +1,4 @@
+verbosity 0
+
+OutputFile /Jingbo/Neutronsim/MTCheck10005lappd200.root
+#ShowEvent 200

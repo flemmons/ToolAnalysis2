@@ -1,0 +1,8 @@
+verbosity 5
+
+OutputFile /Jingbo/LFCheck-test1078-28.root
+ifPlot2DFOM 1
+ShowEvent 28
+UsePDFFile 0
+PDFFile /Jingbo/VGCheck-pdfcharge.root
+SimpleDirectionTest 0

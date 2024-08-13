@@ -15,7 +15,7 @@ fillCleanEventsOnly 1
 MRDReco_fill 0
 TriggerProcessing 1
 
-OutputFile /Jingbo/Neutronsim/vtxreco-beamsim-1078-LAPPDgdgcomp-promptd.root
+OutputFile /Jingbo/vtxreco-beamsim-LAPPDgdgcomp-promptd.root
 #OuputFile /Jingbo/singletest/vtxreco-single.root
 #OutputFile /Jingbo/ArgonOutput/vtxreco-other.root
 #OutputFile /Jingbo/Neutronsim/vtxreco-beamsim1038LAPPD.root

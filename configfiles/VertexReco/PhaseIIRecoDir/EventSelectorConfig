@@ -10,7 +10,7 @@ MRDRecoCut 0
 RecoPMTVolCut 0
 RecoFVCut 0 
 ArgonFV 0
-MCIsSingleRingCut 1
+MCIsSingleRingCut 0 #08/09/24 Jingbo changed it to 0
 NHitCut 1
 PromptTrigOnly 1
 SaveStatusToStore 1

@@ -267,7 +267,8 @@ bool DigitBuilder::BuildMCPMTRecoDigit() {
             calT = (hitTimes.at(timesize/2 - 1) + hitTimes.at(timesize/2))/2;
           } else {
             calT = hitTimes.at(timesize/2);
-          }
+          }          
+          calT = frand.Gaus(calT,1.0);
           calQ = 0.;
           for(std::vector<double>::iterator it = hitCharges.begin(); it != hitCharges.end(); ++it){
             calQ += *it;
@@ -286,9 +287,11 @@ bool DigitBuilder::BuildMCPMTRecoDigit() {
 				  }
         } else {
 			    for(MCHit& ahit : hits){
+			    calT = ahit.GetTime();
 				  	//if(v_message<verbosity) ahit.Print(); // << VERY verbose
 				  	// get calibrated PMT time (Use the MC time for now)
-				  	calT = ahit.GetTime()*1.0; 
+				 
+			    //calT = frand.Gaus(calT, 1.0);
             calQ = ahit.GetCharge();
             if (verbosity>4) { 
               std::cout << "PMT position (X<Y<Z): " << 

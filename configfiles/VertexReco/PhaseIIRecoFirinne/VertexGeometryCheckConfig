@@ -1,6 +1,6 @@
 verbosity 5
 
-OutputFile /Data/Neutronsim/VGCheck-1078-LAPPDcompnosh-recoMRD.root
+OutputFile /Jingbo/VGCheck-1078-all-05smear.root
 #ShowEvent 28
 #Theta 1.0
 #Phi 1.0

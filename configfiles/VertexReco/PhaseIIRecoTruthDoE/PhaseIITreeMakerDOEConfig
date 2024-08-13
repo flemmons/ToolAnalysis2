@@ -4,6 +4,6 @@ RecoDebug_fill 0
 MCTruth_fill 1
 muonTruthRecoDiff_fill 1
 
-OutputFile /Jingbo/ToolAnalysisDoE_true_seeds_wcsim_extv3.root
+OutputFile /Jingbo/ToolAnalysisDoE_true_seeds_wcsim_extv8all_DOE.root
 NumEventsWritten 2000
 

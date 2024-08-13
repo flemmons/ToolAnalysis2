@@ -1,6 +1,6 @@
 # VtxExtendedVertexFinder config file
 
-verbosity 1
+verbosity 5
 
 # Only one of the options below should be set to 1. All the others should be set to 0
 UseTrueVertexAsSeed 1
@@ -8,4 +8,4 @@ UsePointVertexAsSeed 0
 FitAllOnSeedGrid 0
 UseMeanTimeAsSeed 0
 UsePDFFile 0
-PDFFile ./Data/Singletest/VGcheck-pdftest.root
+PDFFile ./Jingbo/VGcheck-pdftest.root

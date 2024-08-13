@@ -1,7 +1,7 @@
 verbosity 5
 
-OutputFile /Data/Neutronsim/VGCheck-1078-LAPPDcompnosh-recoMRD.root
-#ShowEvent 28
+OutputFile /Jingbo/VGCheck-LAPPDcompnosh-recoMRD.root
+#ShowEvent 3
 #Theta 1.0
 #Phi 1.0
 StripTimePlot 0

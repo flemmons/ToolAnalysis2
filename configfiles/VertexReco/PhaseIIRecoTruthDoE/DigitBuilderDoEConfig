@@ -5,4 +5,4 @@ InputFile /Jingbo/Data/WCSimtrueQEvertexinfo_extv3.root
 # There are three configurations: "PMT_only", "LAPPD_only", "All" CURRENTLY NOT WORKING
 PhotoDetectorConfiguration All
 HistoricOffset 6670
-#LAPPDId 266 271 236 231 206
+LAPPDId 266 271 236 231 206

@@ -1,8 +1,9 @@
 verbosity 5
-
-OutputFile /Jingbo/LFCheck-test1078-28.root
+OutputFile /Jingbo/LFCheck-HET-20test073129.root
 ifPlot2DFOM 1
-ShowEvent 28
+ShowEvent 0
+EventRange 20
+CleanEventsOnly 1
 UsePDFFile 0
 PDFFile /Jingbo/VGCheck-pdfcharge.root
 SimpleDirectionTest 0

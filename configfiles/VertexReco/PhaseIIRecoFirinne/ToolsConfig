@@ -2,14 +2,12 @@ LoadWCSim LoadWCSim ./configfiles/VertexReco/PhaseIIRecoFirinne/LoadWCSimConfig
 LoadWCSimLAPPD LoadWCSimLAPPD ./configfiles/VertexReco/PhaseIIRecoFirinne/LoadWCSimLAPPDConfig
 MCParticleProperties MCParticleProperties ./configfiles/VertexReco/PhaseIIRecoFirinne/MCParticlePropertiesConfig
 MCRecoEventLoader MCRecoEventLoader ./configfiles/VertexReco/PhaseIIRecoFirinne/MCRecoEventLoaderConfig
-#LAPPDSim LAPPDSim ./configfiles/VertexReco/PhaseIIRecoFirinne/LAPPDSimConfig
-#LAPPDTranslation LAPPDTranslation ./configfiles/VertexReco/PhaseIIRecoFirinne/LAPPDTranslationConfig
 DigitBuilder DigitBuilder ./configfiles/VertexReco/PhaseIIRecoFirinne/DigitBuilderConfig
 HitCleaner HitCleaner ./configfiles/VertexReco/PhaseIIRecoFirinne/HitCleanerConfig
 ClusterFinder ClusterFinder ./configfiles/VertexReco/PhaseIIRecoFirinne/ClusterFinderConfig
-TimeClustering TimeClustering ./configfiles/VertexReco/PhaseIIRecoFirinne/TimeClusteringConfig
-ClusterClassifiers ClusterClassifiers ./configfiles/VertexReco/PhaseIIRecoFirinne/ClusterClassifiersConfig
-FindMrdTracks FindMrdTracks ./configfiles/VertexReco/PhaseIIRecoFirinne/FindMrdTracksConfig
+#TimeClustering TimeClustering ./configfiles/VertexReco/PhaseIIRecoFirinne/TimeClusteringConfig
+#ClusterClassifiers ClusterClassifiers ./configfiles/VertexReco/PhaseIIRecoFirinne/ClusterClassifiersConfig
+#FindMrdTracks FindMrdTracks ./configfiles/VertexReco/PhaseIIRecoFirinne/FindMrdTracksConfig
 EventSelector EventSelector ./configfiles/VertexReco/PhaseIIRecoFirinne/EventSelectorConfig
 #VtxSeedGenerator VtxSeedGenerator ./configfiles/VertexReco/PhaseIIRecoFirinne/VtxSeedGeneratorConfig
 #VtxSeedFineGrid VtxSeedFineGrid ./configfiles/VertexReco/PhaseIIRecoFirinne/VtxSeedFineGridConfig
@@ -17,7 +15,7 @@ EventSelector EventSelector ./configfiles/VertexReco/PhaseIIRecoFirinne/EventSel
 VtxExtendedVertexFinder VtxExtendedVertexFinder ./configfiles/VertexReco/PhaseIIRecoFirinne/VtxExtendedVertexFinderConfig
 #EventSelector2 EventSelector ./configfiles/VertexReco/PhaseIIRecoFirinne/EventSelector2Config
 VtxGeometryCheck VertexGeometryCheck ./configfiles/VertexReco/PhaseIIRecoFirinne/VertexGeometryCheckConfig
-#LikelihoodFitterCheck LikelihoodFitterCheck ./configfiles/VertexReco/PhaseIIRecoFirinne/LikelihoodFitterCheckConfig
+LikelihoodFitterCheck LikelihoodFitterCheck ./configfiles/VertexReco/PhaseIIRecoFirinne/LikelihoodFitterCheckConfig
 #NeutHitTreeMaker NeutHitTreeMaker ./configfiles/VertexReco/PhaseIIRecoFirinne/NeutHitTreeMakerConfig
 PhaseIITreeMaker PhaseIITreeMaker ./configfiles/VertexReco/PhaseIIRecoFirinne/PhaseIITreeMakerConfig
 #DirectionGridCheck DirectionGridCheck ./configfiles/VertexReco/PhaseIIRecoFirinne/DirectionGridCheckConfig

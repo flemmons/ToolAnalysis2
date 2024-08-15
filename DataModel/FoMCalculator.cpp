@@ -445,7 +445,8 @@ void FoMCalculator::ExtendedVertexChi2(double vtxX, double vtxY, double vtxZ, do
 
 	double fTimeFitWeight = this->fTimeFitWeight;
 	double fConeFitWeight = this->fConeFitWeight;
-    vtxFOM = (fTimeFitWeight * timeFOM + fConeFitWeight * coneFOM) / (fTimeFitWeight + fConeFitWeight);
+
+	vtxFOM = (fTimeFitWeight*timeFOM + fConeFitWeight * coneFOM) / (fTimeFitWeight + fConeFitWeight);
 
 	// calculate overall figure of merit
 	// =================================

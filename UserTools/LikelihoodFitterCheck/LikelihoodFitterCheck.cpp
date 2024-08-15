@@ -19,6 +19,7 @@ bool LikelihoodFitterCheck::Initialise(std::string configfile, DataModel &data){
   fOutput_tfile = new TFile(output_filename.c_str(), "recreate");
   
   // Histograms
+
   Likelihood2D = new TH2D("Likelihood2D","Figure of merit 2D", 200, -10, 190, 100, -50, 50);
   Likelihood2D_pdf = new TH2D("Likelihood2D_pdf", "pdf-based figure of merit 2D", 200, 0, 200, 100, 0, 100);
   gr_parallel = new TGraph();
@@ -216,7 +217,11 @@ bool LikelihoodFitterCheck::Execute(){
             seedDirX = cos(m * TMath::Pi() / 100) * sin(k * TMath::Pi() / 100);
             seedDirY = sin(m * TMath::Pi() / 100) * sin(k * TMath::Pi() / 100);
             seedDirZ = cos(k * TMath::Pi() / 100);
+<<<<<<< HEAD
         	myvtxgeo->CalcExtendedResiduals(seedX, seedY, seedZ, seedT, trueDirX, trueDirY, trueDirZ);
+=======
+        	myvtxgeo->CalcExtendedResiduals(trueVtxX, trueVtxY, trueVtxZ, seedT, seedDirX, seedDirY, seedDirZ);
+>>>>>>> Application
         	int nhits = myvtxgeo->GetNDigits();
           double meantime = myFoMCalculator->FindSimpleTimeProperties(ConeAngle);
           Double_t fom = -999.999*100;
@@ -232,7 +237,11 @@ bool LikelihoodFitterCheck::Execute(){
           cout<<"k,m, timeFOM, coneFOM, fom = "<<k<<", "<<m<<", "<<timefom<<", "<<conefom<<", "<<fom<<endl;
           Likelihood2D->SetBinContent(m, k, fom);
           if (fUsePDFFile) {
+<<<<<<< HEAD
               myFoMCalculator->ConePropertiesLnL(seedX, seedY, seedZ, trueDirX, trueDirY, trueDirZ, coneAngle, conefomlnl, pdf, phimax, phimin);
+=======
+              myFoMCalculator->ConePropertiesLnL(trueVtxX, trueVtxY, trueVtxZ, seedDirX, seedDirY, seedDirZ, coneAngle, conefomlnl, pdf, phimax, phimin);
+>>>>>>> Application
               fompdf = 0.5 * timefom + 0.5 * (conefomlnl);
               cout << "coneFOMlnl: " << conefomlnl << endl;
               if (k == 50 && m == 50) {

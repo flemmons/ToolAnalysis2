@@ -23,9 +23,11 @@ bool VtxExtendedVertexFinder::Initialise(std::string configfile, DataModel &data
   m_variables.Get("FitTimeWindowMin", fTmin);
   m_variables.Get("FitTimeWindowMax", fTmax);
   m_variables.Get("UsePDFFile", fUsePDFFile);
+
   if (fUsePDFFile) {
       m_variables.Get("PDFFile", pdffile);
   }
+
   
   /// Create extended vertex
   /// Note that the objects created by "new" must be added to the "RecoEvent" store. 
@@ -205,7 +207,10 @@ RecoVertex* VtxExtendedVertexFinder::FitGridSeeds(std::vector<RecoVertex>* vSeed
         myOptimizer->FitExtendedVertexWithMinuit(); //scan the point position in 4D space
     }
     else {
+<<<<<<< HEAD
         std::cout << "Using new likelihood charge fit" << endl;
+=======
+>>>>>>> Application
         myOptimizer->FitExtendedVertexWithMinuit(pdf);
     }
 

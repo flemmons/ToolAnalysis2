@@ -19,6 +19,8 @@
 #include "ANNIEGeometry.h"
 #include "TMath.h"
 
+#include "BeamStatus.h"
+
 class EventSelector: public Tool {
 
 
@@ -51,7 +53,9 @@ class EventSelector: public Tool {
    kFlagVeto        = 0x20000, //131072
    kFlagTrigger      = 0x40000,
    kFlagThroughGoing     = 0x80000,
-   kFlagRecoPDG        = 0x1000000,
+   kFlagRecoPDG        = 0x100000,
+   kFlagExtended = 0x200000,
+   kFlagBeamOK        = 0x400000,
   } EventFlags_t;
 
  private:
@@ -176,6 +180,16 @@ class EventSelector: public Tool {
   //
   bool EventSelectionByRecoPDG(int recoPDG, std::vector<double> & vector_reco_pdg);
 
+  /// \brief Event selection for extended acquisition windows
+  //
+  /// This event selection criterion flags events with an extended trigger window (70us)
+  bool EventSelectionByTriggerExtended();
+
+  /// \brief Event selection for beam status
+  ///
+  /// This event selection criterion flags events for which beam status was ok
+  bool EventSelectionByBeamOK();
+
   /// \brief MC entry number
   uint64_t fMCEventNum;
   
@@ -193,6 +207,7 @@ class EventSelector: public Tool {
   RecoVertex* fMuonStartVertex = nullptr; 	 ///< true muon start vertex
   RecoVertex* fMuonStopVertex = nullptr; 	 ///< true muon stop vertex
   std::vector<RecoDigit>* fDigitList;		///< Reconstructed Hits including both LAPPD hits and PMT hits
+  std::vector<int>* fHitLAPPDs;
   RecoVertex* fRecoVertex = nullptr; 	 ///< Reconstructed Vertex 
   std::map<double,std::vector<Hit>>* m_all_clusters;   ///< clustered PMT hits
   std::map<double,std::vector<MCHit>>* m_all_clusters_MC;   ///< clustered PMT hits
@@ -235,8 +250,11 @@ class EventSelector: public Tool {
   bool fThroughGoing = false;
   bool fEventCutStatus;
   bool fIsMC; 
-  int fTriggerWord=0;
+  int fTriggerWord;
   int fRecoPDG;
+  bool fTriggerExtended = false;
+  bool fBeamOK = false;
+  int fLAPPDMultMin = 0;
   std::string fCutConfigurationName;  
 
   bool get_mrd = false;

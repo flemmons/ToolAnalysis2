@@ -29,7 +29,7 @@ bool DigitBuilder::Initialise(std::string configfile, DataModel &data){
   fParametricModel = 0;
   fIsMC = 1;
   fDigitChargeThr = 10;
-
+  
 
   /// Get the Tool configuration variables
   m_variables.Get("verbosity",verbosity);
@@ -47,6 +47,7 @@ bool DigitBuilder::Initialise(std::string configfile, DataModel &data){
 
   /// Construct the other objects we'll be setting at event level,
   fDigitList = new std::vector<RecoDigit>;
+  fHitLAPPDs = new std::vector<int>;
 
   // Make the RecoDigit Store if it doesn't exist
   int recoeventexists = m_data->Stores.count("RecoEvent");
@@ -58,6 +59,7 @@ bool DigitBuilder::Initialise(std::string configfile, DataModel &data){
     Log("DigitBuilder Tool: Error retrieving Geometry from ANNIEEvent!",v_error,verbosity); 
     return false; 
   }
+  std::cout << "Strip Hit Mode:" << striphit << endl;
   
   // Some hard-coded values of old WCSim LAPPDIDs are in this Tool
   // I would recommend moving away from the use of WCSim IDs if possible as they are liable to change
@@ -267,8 +269,8 @@ bool DigitBuilder::BuildMCPMTRecoDigit() {
             calT = (hitTimes.at(timesize/2 - 1) + hitTimes.at(timesize/2))/2;
           } else {
             calT = hitTimes.at(timesize/2);
-          }          
-          calT = frand.Gaus(calT,1.0);
+          }
+          calT = frand.Gaus(calT, 1.0);
           calQ = 0.;
           for(std::vector<double>::iterator it = hitCharges.begin(); it != hitCharges.end(); ++it){
             calQ += *it;
@@ -287,11 +289,9 @@ bool DigitBuilder::BuildMCPMTRecoDigit() {
 				  }
         } else {
 			    for(MCHit& ahit : hits){
-			    calT = ahit.GetTime();
 				  	//if(v_message<verbosity) ahit.Print(); // << VERY verbose
 				  	// get calibrated PMT time (Use the MC time for now)
-				 
-			    //calT = frand.Gaus(calT, 1.0);
+				  	calT = ahit.GetTime()*1.0; 
             calQ = ahit.GetCharge();
             if (verbosity>4) { 
               std::cout << "PMT position (X<Y<Z): " << 
@@ -300,6 +300,7 @@ bool DigitBuilder::BuildMCPMTRecoDigit() {
               std::cout << "PMT Charge,Time: " << to_string(calQ) << "," <<
                       to_string(calT) << std::endl;
             }
+            calT = frand.Gaus(calT, 1.0);
 				  	digitType = RecoDigit::PMT8inch;
 				  	RecoDigit recoDigit(region, pos_reco, calT, calQ, digitType, PMTId);
 				    //recoDigit.Print();
@@ -324,9 +325,14 @@ bool DigitBuilder::BuildMCLAPPDRecoDigit() {
 	int digitType = -999;
 	Detector* det=nullptr;
 	Position  pos_sim, pos_reco;
+    int currentLAPPD = 0;
+    if (fHitLAPPDs->size() > 0) {
+        fHitLAPPDs->clear();
+    }
+
   // repeat for LAPPD hits
 	// MCLAPPDHits is a std::map<unsigned long,std::vector<LAPPDHit>>
-	if(fMCLAPPDHits){
+	if(fMCLAPPDHits && fMCLAPPDHits->size() > 0){
 		Log("DigitBuilder Tool: Num LAPPD Digits = "+to_string(fMCLAPPDHits->size()),v_message,verbosity);
 		// iterate over the map of sensors with a measurement
 		for(std::pair<unsigned long,std::vector<MCLAPPDHit>>&& apair : *fMCLAPPDHits){
@@ -354,6 +360,7 @@ bool DigitBuilder::BuildMCLAPPDRecoDigit() {
 
       if (det->GetDetectorElement() == "LAPPD") { // redundant, MCLAPPDHits are LAPPD hitss
           std::vector<MCLAPPDHit>& hits = apair.second;
+
           std::vector<double> sumposX;
           std::vector<double> sumposY;
           std::vector<double> sumposZ;
@@ -369,6 +376,12 @@ bool DigitBuilder::BuildMCLAPPDRecoDigit() {
               nHitsOnStrip.push_back(0);
           }
 				for(MCLAPPDHit& ahit : hits){
+                    if (LAPPDId != currentLAPPD && hits.size() > 3) {
+                        std::cout << "THERE ARE HITS ON LAPPD " << LAPPDId << endl;
+                        currentLAPPD = LAPPDId;                        
+                        fHitLAPPDs->push_back(currentLAPPD);
+                        std::cout << "fHitLAPPDs size: " << fHitLAPPDs->size() << endl;
+                    }
                     if (striphit == 0) {
                         //if(v_message<verbosity) ahit.Print(); // << VERY verbose
                         // an LAPPDHit has adds (global x-y-z) position, (in-tile x-y) local position
@@ -397,6 +410,7 @@ bool DigitBuilder::BuildMCLAPPDRecoDigit() {
                       //make some cuts here. It will be moved to the Hitcleaning tool
                         if (calT > 40 || calT < -10) continue; // cut off delayed hits
                         fDigitList->push_back(recoDigit);
+
                     }
                     else {
                         posX = (ahit.GetPosition().at(0) * 100 + xshift) - (det->GetPositionInTank().X() * 100 + xshift);
@@ -457,6 +471,7 @@ bool DigitBuilder::BuildMCLAPPDRecoDigit() {
 		cout<<"No MCLAPPDHits"<<endl;
 		return false;
 	}
+    
 	return true;
 }
 
@@ -627,6 +642,7 @@ bool DigitBuilder::BuildDataPMTRecoDigit(){
 void DigitBuilder::PushRecoDigits(bool savetodisk) {
 	Log("DigitBuilder Tool: Push reconstructed digits to the RecoEvent store",v_message,verbosity);
 	m_data->Stores.at("RecoEvent")->Set("RecoDigit", fDigitList, savetodisk);  ///> Add digits to RecoEvent
+    m_data->Stores.at("RecoEvent")->Set("HitLAPPDs", fHitLAPPDs, savetodisk);
 }
 
 void DigitBuilder::Reset() {

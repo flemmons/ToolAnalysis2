@@ -72,7 +72,7 @@ class DigitBuilder: public Tool {
   int verbosity=1;
   std::string fInputfile;
   unsigned long fNumEvents;
-  
+  std::vector<int>* fHitLAPPDs;
   std::vector<int> fLAPPDId; ///< selected LAPPDs
   std::string fPhotodetectorConfiguration; ///< "PMTs_Only", "LAPPDs_Only", "All_Detectors"
   bool fParametricModel;     ///< configures if PMTs hits for each event are accumulated into one hit per PMT

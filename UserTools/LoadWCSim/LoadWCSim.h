@@ -61,7 +61,8 @@ class LoadWCSim: public Tool {
 	/////////////////////////////
 	int verbosity=1;
 	int HistoricTriggeroffset;
-	int use_smeared_digit_time;   // digit_time = (T): first photon smeared time, (F): first photon true time
+	int use_smeared_digit_time;   // digit_time = (T): first photon smeared time, (F): find time internally
+	int firstHit;				  // under find time internally, digit_time = (T): first photon true time (F): Smear from median
 	int LappdNumStrips;           // number of Channels per LAPPD
 	double LappdStripLength;      // [mm] for calculating relative x position for dual-ended readout
 	double LappdStripSeparation;  // [mm] for calculating relative y position of each stripline

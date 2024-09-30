@@ -62,7 +62,9 @@ bool VtxSeedGenerator::Execute(){
   auto get_evtstatus = m_data->Stores.at("RecoEvent")->Get("EventCutStatus",EventCutstatus);
   if(!get_evtstatus) {
     Log("Error: The PhaseITreeMaker tool could not find the Event selection status", v_error, verbosity);
-    return false;	
+    //return false;
+    Log("running with reco cuts or none.",v_debug, verbosity);	
+    EventCutstatus = true;
   }
   if(!EventCutstatus) {
   	Log("Message: This event doesn't pass the event selection. ", v_message, verbosity);
@@ -78,10 +80,10 @@ bool VtxSeedGenerator::Execute(){
   }
 
   // Generate vertex candidates and push to "RecoEvent" store
-  if (UseSeedGrid) {
-	  Log("VtxSeedGenerator Tool: Generating seed grid", v_debug, verbosity);
-	  this->GenerateSeedGrid(fNumSeeds);
-  }else {
+  if (UseSeedGrid){
+    Log("VtxSeedGenerator Tool: Generating seed grid",v_debug,verbosity);
+    this->GenerateSeedGrid(fNumSeeds);
+  } else {
     Log("VtxSeedGenerator Tool: Generating quadfitter seeds",v_debug,verbosity);
     this->GenerateVertexSeeds(fNumSeeds);
   }

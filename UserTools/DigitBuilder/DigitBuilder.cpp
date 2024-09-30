@@ -270,7 +270,7 @@ bool DigitBuilder::BuildMCPMTRecoDigit() {
           } else {
             calT = hitTimes.at(timesize/2);
           }
-          calT = frand.Gaus(calT, 1.0);
+          //calT = frand.Gaus(calT, 1.0);
           calQ = 0.;
           for(std::vector<double>::iterator it = hitCharges.begin(); it != hitCharges.end(); ++it){
             calQ += *it;

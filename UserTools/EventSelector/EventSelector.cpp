@@ -112,16 +112,15 @@ bool EventSelector::Execute(){
   	Log("EventSelector  Tool: Error retrieving RecoDigits,no digit from the RecoEvent!",v_warning,verbosity); 
   	/*return false;*/
   }
-  if (fLAPPDMultMin > 0) {
       auto has_LAPPDMult = m_data->Stores.at("RecoEvent")->Get("HitLAPPDs", fHitLAPPDs);
       if (not has_LAPPDMult) {
           Log("EventSelector Tool: No count of hit LAPPDs; proceeding without LAPPD multiplicity cut.", v_warning, verbosity);
           fLAPPDMultMin = 0;
+          fHitLAPPDs = new std::vector<int>;
       }
       else {
           Log("EventSelector Tool: # of LAPPDs hit in this event: " + std::to_string(fHitLAPPDs->size()), v_debug, verbosity);
       }
-  }
 
   // BEGIN CUTS USING TRUTH INFORMATION //
 
@@ -263,7 +262,7 @@ bool EventSelector::Execute(){
 
   if(fNHitCut){
     fEventApplied |= EventSelector::kFlagNHit;
-    if(!HasEnoughHits || fHitLAPPDs->size() < fLAPPDMultMin) fEventFlagged |= EventSelector::kFlagNHit;
+    if(!HasEnoughHits || (fLAPPDMultMin > 0 && fHitLAPPDs->size() < fLAPPDMultMin)) fEventFlagged |= EventSelector::kFlagNHit;
   }
 
   if (fMCEnergyCut){

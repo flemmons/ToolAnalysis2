@@ -50,6 +50,7 @@ bool EventSelector::Initialise(std::string configfile, DataModel &data){
   m_variables.Get("TriggerExtendedWindow",fTriggerExtended);
   m_variables.Get("BeamOK",fBeamOK);
   m_variables.Get("CutConfiguration",fCutConfigurationName);
+  m_variables.Get("ImportStatus", fImportStatus);
 
   if (!fIsMC){fMCFVCut = false; fMCPMTVolCut = false; fMCMRDCut = false; fMCPiKCut = false; fMCIsMuonCut = false; fMCIsElectronCut = false; fMCIsSingleRingCut = false; fMCIsMultiRingCut = false; fMCProjectedMRDHit = false; fMCEnergyCut = false; fPromptTrigOnly = false;}
 
@@ -84,6 +85,20 @@ bool EventSelector::Execute(){
   // Reset everything
   this->Reset();
   
+  if (fImportStatus) {
+      Log("EventSelector Tool: importing status from previous event selection", v_message, verbosity);
+      auto get_ok1 = m_data->Stores.at("RecoEvent")->Get("EventFlagApplied", fEventApplied);
+      auto get_ok2 = m_data->Stores.at("RecoEvent")->Get("EventFlagged", fEventFlagged);
+      if (!(get_ok1 && get_ok2)) {
+          Log("Nevermind; there was no previous selection in store",v_debug,verbosity);
+      }
+      else {
+          std::cout << "Received status: fEventApplied: " << fEventApplied << ", fEventFlagged: " << fEventFlagged << std::endl;
+          std::cout << "Bit representation: fEventApplied: " << std::bitset<32>(fEventApplied) << ", fEventFlagged: " << std::bitset<32>(fEventFlagged) << std::endl;
+      }
+
+  }
+
   // see if "ANNIEEvent" exists
   auto get_annieevent = m_data->Stores.count("ANNIEEvent");
   if(!get_annieevent){
@@ -162,77 +177,109 @@ bool EventSelector::Execute(){
 
   bool IsSingleRing = false, IsMultiRing = false, HasProjectedMRDHit = false, passNoPiK = false, passMCFVCut = false, passMCPMTCut = false, passMCMRDCut = false, IsInsideEnergyWindow = false, IsElectron = false, IsMuon = false, isPromptTrigger=false;
  
-  if (fIsMC){
+  if (fIsMC) {
 
-    isPromptTrigger = this->PromptTriggerCheck();
-    m_data->Stores.at("RecoEvent")->Set("PromptEvent",isPromptTrigger);
-    
-    IsSingleRing = this->EventSelectionByMCSingleRing();
-    m_data->Stores.at("RecoEvent")->Set("MCSingleRingEvent",IsSingleRing);
-
-    IsMultiRing = this->EventSelectionByMCMultiRing();
-    m_data->Stores.at("RecoEvent")->Set("MCMultiRingEvent",IsMultiRing);
-
-    HasProjectedMRDHit = this->EventSelectionByMCProjectedMRDHit();
-    //information about projected MRD hit already stored in the RecoEvent store by MCRecoEventLoader
-
-    passNoPiK = this->EventSelectionNoPiK();
-    m_data->Stores.at("RecoEvent")->Set("MCNoPiK",passNoPiK);
-
-    passMCFVCut = this->EventSelectionByFV(true);
-    m_data->Stores.at("RecoEvent")->Set("MCFV",passMCFVCut);
-
-    passMCPMTCut = this->EventSelectionByPMTVol(true);
-    m_data->Stores.at("RecoEvent")->Set("MCPMTVol",passMCPMTCut);
- 
-    passMCMRDCut= this->EventSelectionByMCTruthMRD();
-    m_data->Stores.at("RecoEvent")->Set("MCMRDStop",passMCMRDCut);
-
-    IsInsideEnergyWindow = this->EnergyCutCheck(Emin,Emax);
-    m_data->Stores.at("RecoEvent")->Set("MCEnergyCut",IsInsideEnergyWindow);
-
-    IsMuon = this->ParticleCheck(13);
-    m_data->Stores.at("RecoEvent")->Set("MCIsMuon",IsMuon);
-
-    IsElectron = this->ParticleCheck(11);
-    m_data->Stores.at("RecoEvent")->Set("MCIsElectron",IsElectron);
-
+      if (fPromptTrigOnly) {}
+      isPromptTrigger = this->PromptTriggerCheck();
+      m_data->Stores.at("RecoEvent")->Set("PromptEvent", isPromptTrigger);
   }
 
-  bool HasEnoughHits = false;
-  if (has_reco){
+  if (fMCIsSingleRingCut) {
+      IsSingleRing = this->EventSelectionByMCSingleRing();
+      m_data->Stores.at("RecoEvent")->Set("MCSingleRingEvent", IsSingleRing);
+  }
+
+  if (fMCIsMultiRingCut) {
+      IsMultiRing = this->EventSelectionByMCMultiRing();
+      m_data->Stores.at("RecoEvent")->Set("MCMultiRingEvent", IsMultiRing);
+  }
+
+  if (fMCProjectedMRDHit) {
+      HasProjectedMRDHit = this->EventSelectionByMCProjectedMRDHit();
+      //information about projected MRD hit already stored in the RecoEvent store by MCRecoEventLoader
+  }
+
+  if (fMCPiKCut) {
+      passNoPiK = this->EventSelectionNoPiK();
+      m_data->Stores.at("RecoEvent")->Set("MCNoPiK", passNoPiK);
+  }
+
+  if (fMCFVCut) {
+      passMCFVCut = this->EventSelectionByFV(true);
+      m_data->Stores.at("RecoEvent")->Set("MCFV", passMCFVCut);
+  }
+
+  if (fMCPMTVolCut) {
+      passMCPMTCut = this->EventSelectionByPMTVol(true);
+      m_data->Stores.at("RecoEvent")->Set("MCPMTVol", passMCPMTCut);
+  }
+
+  if (fMCMRDCut) {
+      passMCMRDCut = this->EventSelectionByMCTruthMRD();
+      m_data->Stores.at("RecoEvent")->Set("MCMRDStop", passMCMRDCut);
+  }
+
+  if (fMCEnergyCut) {
+      IsInsideEnergyWindow = this->EnergyCutCheck(Emin, Emax);
+      m_data->Stores.at("RecoEvent")->Set("MCEnergyCut", IsInsideEnergyWindow);
+  }
+
+  if (fMCIsMuonCut) {
+      IsMuon = this->ParticleCheck(13);
+      m_data->Stores.at("RecoEvent")->Set("MCIsMuon", IsMuon);
+  }
+
+  if (fMCIsElectronCut) {
+      IsElectron = this->ParticleCheck(11);
+      m_data->Stores.at("RecoEvent")->Set("MCIsElectron", IsElectron);
+  }
+  
+
+  bool HasEnoughHits = false, passPMTMRDCoincCut = false, passVetoCut = false, passTriggerCut=false, passThroughGoingCut = true, passRecoPDGCut = false, passExtendedCut = false, passBeamOKCut = false;
+  if (has_reco && fNHitCut){
     HasEnoughHits = this->NHitCountCheck(fNHitmin);
     m_data->Stores.at("RecoEvent")->Set("NHitCut",HasEnoughHits);  
   }
 
-  bool passPMTMRDCoincCut = this->EventSelectionByPMTMRDCoinc();
-  m_data->Stores.at("RecoEvent")->Set("PMTMRDCoinc",passPMTMRDCoincCut);
-
-  bool passVetoCut = this->EventSelectionByVetoCut();
-  m_data->Stores.at("RecoEvent")->Set("NoVeto",passVetoCut);
-
-  bool passTriggerCut = this->EventSelectionByTrigger(fTrigger,fTriggerWord);
-  m_data->Stores.at("RecoEvent")->Set("TriggerCut",passTriggerCut);
-
-  //bool passThroughGoingCut = this->EventSelectionByThroughGoing();
-  bool passThroughGoingCut = true;
-  m_data->Stores.at("RecoEvent")->Set("ThroughGoing",passThroughGoingCut);
-
-  bool passRecoPDGCut = 0;
-  std::cout << "fRecoPDG: " << fRecoPDG << endl;
-  if (fRecoPDG != -1) {
-      std::vector<double> cluster_reco_pdg;
-      passRecoPDGCut = this->EventSelectionByRecoPDG(fRecoPDG, cluster_reco_pdg);
-      m_data->Stores.at("RecoEvent")->Set("RecoPDGVector", cluster_reco_pdg);
-      m_data->Stores.at("RecoEvent")->Set("PDG", fRecoPDG);
+  if (fPMTMRDCoincCut) {
+      passPMTMRDCoincCut = this->EventSelectionByPMTMRDCoinc();
+      m_data->Stores.at("RecoEvent")->Set("PMTMRDCoinc", passPMTMRDCoincCut);
   }
 
-  bool passExtendedCut = this->EventSelectionByTriggerExtended();
-  m_data->Stores.at("RecoEvent")->Set("TriggerExtended",passExtendedCut);
+  if (fNoVetoCut||fVetoCut) {
+      passVetoCut = this->EventSelectionByVetoCut();
+      m_data->Stores.at("RecoEvent")->Set("NoVeto", passVetoCut);
+  }
 
-  bool passBeamOKCut = this->EventSelectionByBeamOK();
-  m_data->Stores.at("RecoEvent")->Set("BeamOK",passBeamOKCut);
+  if (fTriggerWord > 0) {
+      passTriggerCut = this->EventSelectionByTrigger(fTrigger, fTriggerWord);
+      m_data->Stores.at("RecoEvent")->Set("TriggerCut", passTriggerCut);
+  }
 
+  if (fThroughGoing) {
+      //bool passThroughGoingCut = this->EventSelectionByThroughGoing();
+      //bool passThroughGoingCut = true;
+      m_data->Stores.at("RecoEvent")->Set("ThroughGoing", passThroughGoingCut);
+  }
+
+      passRecoPDGCut = 0;
+      std::cout << "fRecoPDG: " << fRecoPDG << endl;
+      if (fRecoPDG != -1) {
+          std::vector<double> cluster_reco_pdg;
+          passRecoPDGCut = this->EventSelectionByRecoPDG(fRecoPDG, cluster_reco_pdg);
+          m_data->Stores.at("RecoEvent")->Set("RecoPDGVector", cluster_reco_pdg);
+          m_data->Stores.at("RecoEvent")->Set("PDG", fRecoPDG);
+      }
+
+      if (fTriggerExtended) {
+          passExtendedCut = this->EventSelectionByTriggerExtended();
+          m_data->Stores.at("RecoEvent")->Set("TriggerExtended", passExtendedCut);
+      }
+
+      if (fBeamOK) {
+          passBeamOKCut = this->EventSelectionByBeamOK();
+          m_data->Stores.at("RecoEvent")->Set("BeamOK", passBeamOKCut);
+      }
   // Fill the EventSelection mask for the cuts that are supposed to be applied
   if (fMCPiKCut){
     fEventApplied |= EventSelector::kFlagMCPiK; 

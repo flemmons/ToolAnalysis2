@@ -255,6 +255,7 @@ class EventSelector: public Tool {
   bool fTriggerExtended = false;
   bool fBeamOK = false;
   int fLAPPDMultMin = 0;
+  bool fImportStatus = false;
   std::string fCutConfigurationName;  
 
   bool get_mrd = false;

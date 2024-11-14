@@ -207,10 +207,7 @@ RecoVertex* VtxExtendedVertexFinder::FitGridSeeds(std::vector<RecoVertex>* vSeed
         myOptimizer->FitExtendedVertexWithMinuit(); //scan the point position in 4D space
     }
     else {
-<<<<<<< HEAD
         std::cout << "Using new likelihood charge fit" << endl;
-=======
->>>>>>> Application
         myOptimizer->FitExtendedVertexWithMinuit(pdf);
     }
 

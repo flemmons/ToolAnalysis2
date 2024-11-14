@@ -153,6 +153,7 @@ bool LikelihoodFitterCheck::Execute(){
     double meantime = myFoMCalculator->FindSimpleTimeProperties(ConeAngle);
     Double_t fom = -999.999*100;
     double timefom = -999.999*100;
+    double timefomlikelihood = -999.999*100;
     double conefom = -999.999*100;
     double conefomlnl = -999.999 * 100;
     Double_t fompdf = -999.999 * 100;
@@ -166,9 +167,10 @@ bool LikelihoodFitterCheck::Execute(){
     gr_parallel->SetPoint(j, dlpara[j], dlfom[j]);
 
     if (fUsePDFFile) {
-        myFoMCalculator->ConePropertiesLnL(seedX, seedY, seedZ, seedDirX, seedDirY, seedDirZ, ConeAngle, conefomlnl, pdf, maxphi, minphi);
+        myFoMCalculator->ConePropertiesWrong(seedX, seedY, seedZ, seedDirX, seedDirY, seedDirZ, ConeAngle, conefomlnl, pdf, maxphi, minphi);
         cout << "conefomlnl: " << conefomlnl << endl;
-        fompdf = 0.5 * timefom + 0.5 * conefomlnl;
+        myFoMCalculator->TimePropertiesLnL(meantime,timefomlikelihood);
+	fompdf = 0.5*timefomlikelihood + 0.5*conefomlnl;
         pdf_parallel->SetPoint(j, dlpara[j], fompdf);
     }
   } 
@@ -196,9 +198,11 @@ bool LikelihoodFitterCheck::Execute(){
     Double_t fom = -999.999*100;
     Double_t fompdf = -999.999 * 100;
     double timefom = -999.999*100;
+    double timefomlikelihood = -999.999*100;
     double conefom = -999.999*100;
     double conefomlnl = -999.999 * 100;
     double coneAngle = 42.0;
+    double phimax,phimin;
     myFoMCalculator->TimePropertiesLnL(meantime,timefom);
     myFoMCalculator->ConePropertiesFoM(ConeAngle,conefom);
     fom = timefom*0.5+conefom*0.5;
@@ -209,8 +213,9 @@ bool LikelihoodFitterCheck::Execute(){
     gr_transverse->SetPoint(j, dltrans[j], dlfom[j]);
     if (fUsePDFFile) {
         cout << "pdf fom coming\n";
-       // myFoMCalculator->ConePropertiesLnL(seedX, seedY, seedZ, trueDirX, trueDirY, trueDirZ, coneAngle, conefomlnl, pdf);
-        fompdf = timefom * conefomlnl;
+        myFoMCalculator->ConePropertiesWrong(seedX, seedY, seedZ, trueDirX, trueDirY, trueDirZ, coneAngle, conefomlnl, pdf,phimax,phimin);
+        myFoMCalculator->TimePropertiesLnL(meantime,timefomlikelihood);
+	fompdf = 0.5*timefomlikelihood + 0.5*conefomlnl;
         pdf_transverse->SetPoint(j, dltrans[j], conefomlnl);
     }
   }
@@ -241,6 +246,7 @@ bool LikelihoodFitterCheck::Execute(){
           Double_t fom = -999.999*100;
           Double_t fompdf = -999.999 * 100;
           double timefom = -999.999*100;
+	  double timefomlikelihood=-999.999*100;
           double conefom = -999.999*100;
           double conefomlnl = -999.999 * 100;
           double coneAngle = 42.0;
@@ -251,8 +257,9 @@ bool LikelihoodFitterCheck::Execute(){
           cout<<"k,m, timeFOM, coneFOM, fom = "<<k<<", "<<m<<", "<<timefom<<", "<<conefom<<", "<<fom<<endl;
           Likelihood2D->SetBinContent(m, k, fom);
           if (fUsePDFFile) {
-              myFoMCalculator->ConePropertiesLnL(seedX, seedY, seedZ, trueDirX, trueDirY, trueDirZ, coneAngle, conefomlnl, pdf, phimax, phimin);
-              fompdf = 0.5 * timefom + 0.5 * (conefomlnl);
+              myFoMCalculator->ConePropertiesWrong(seedX, seedY, seedZ, trueDirX, trueDirY, trueDirZ, coneAngle, conefomlnl, pdf, phimax, phimin);
+              myFoMCalculator->TimePropertiesLnL(meantime,timefomlikelihood);
+		fompdf = 0.5*timefomlikelihood + 0.5*conefomlnl;
               cout << "coneFOMlnl: " << conefomlnl << endl;
               if (k == 50 && m == 50) {
                   std::cout << "!!!OUTPUT!!! at true:\n";

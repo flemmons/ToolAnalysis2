@@ -66,7 +66,9 @@ class VertexGeometryCheck: public Tool {
   TH1D *fpmttimesmear;
   TH2D *fYvsDigitTheta_all;
   double vertheta = -999, verphi = -999;
-
+  double steps = 0;
+  double phimod = 0;
+  double thetamod = 0;
 
 /// verbosity levels: if 'verbosity' < this level, the message type will be logged.
   int verbosity=-1;

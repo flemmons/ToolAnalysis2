@@ -10,6 +10,7 @@ bool LikelihoodFitterCheck::Initialise(std::string configfile, DataModel &data){
   if(configfile!="")  m_variables.Initialise(configfile); //loading config file
   //m_variables.Print();
   std::string output_filename;
+  mode = "Position";
   m_variables.Get("verbosity", verbosity);
   m_variables.Get("OutputFile", output_filename);
   m_variables.Get("ifPlot2DFOM", ifPlot2DFOM);
@@ -18,6 +19,7 @@ bool LikelihoodFitterCheck::Initialise(std::string configfile, DataModel &data){
   m_variables.Get("CleanEventsOnly", ifCleanEventsOnly);
   m_variables.Get("UsePDFFile", fUsePDFFile);
   m_variables.Get("PDFFile", pdffile);
+  m_variables.Get("2DMode", mode);
   fOutput_tfile = new TFile(output_filename.c_str(), "recreate");
   
   // Histograms
@@ -50,6 +52,11 @@ bool LikelihoodFitterCheck::Execute(){
     Log("Error: The PhaseITreeMaker tool could not find the ANNIEEvent Store",
       0, verbosity);
     return false;
+  }
+
+  if (ifPlot2DFOM && (mode != "Position" && mode != "Direction")) {
+      Log("Error: invalid 2d-plot mode setting.  Set configvariable '2DMode' to either Position or Direction", v_error);
+      return false;
   }
   
   // MC entry number
@@ -235,7 +242,8 @@ bool LikelihoodFitterCheck::Execute(){
             seedDirX = cos(m * TMath::Pi() / 100) * sin(k * TMath::Pi() / 100);
             seedDirY = sin(m * TMath::Pi() / 100) * sin(k * TMath::Pi() / 100);
             seedDirZ = cos(k * TMath::Pi() / 100);
-        	myvtxgeo->CalcExtendedResiduals(seedX, seedY, seedZ, seedT, trueDirX, trueDirY, trueDirZ);
+            if (mode == "Position") myvtxgeo->CalcExtendedResiduals(seedX, seedY, seedZ, seedT, trueDirX, trueDirY, trueDirZ);
+            else if (mode == "Direction") myvtxgeo->CalcExtendedResiduals(trueVtxX, trueVtxY, trueVtxZ, seedT, seedDirX, seedDirY, seedDirZ);
         	int nhits = myvtxgeo->GetNDigits();
           double meantime = myFoMCalculator->FindSimpleTimeProperties(ConeAngle);
           Double_t fom = -999.999*100;
@@ -251,7 +259,8 @@ bool LikelihoodFitterCheck::Execute(){
           cout<<"k,m, timeFOM, coneFOM, fom = "<<k<<", "<<m<<", "<<timefom<<", "<<conefom<<", "<<fom<<endl;
           Likelihood2D->SetBinContent(m, k, fom);
           if (fUsePDFFile) {
-              myFoMCalculator->ConePropertiesLnL(seedX, seedY, seedZ, trueDirX, trueDirY, trueDirZ, coneAngle, conefomlnl, pdf, phimax, phimin);
+              if (mode == "Position")myFoMCalculator->ConePropertiesLnL(seedX, seedY, seedZ, trueDirX, trueDirY, trueDirZ, coneAngle, conefomlnl, pdf, phimax, phimin);
+              else if (mode == "Direction")myFoMCalculator->ConePropertiesLnL(trueVtxX, trueVtxY, trueVtxZ, seedDirX, seedDirY, seedDirZ, coneAngle, conefomlnl, pdf, phimax, phimin);
               fompdf = 0.5 * timefom + 0.5 * (conefomlnl);
               cout << "coneFOMlnl: " << conefomlnl << endl;
               if (k == 50 && m == 50) {

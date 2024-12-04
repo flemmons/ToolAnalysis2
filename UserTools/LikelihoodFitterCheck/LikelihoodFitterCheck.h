@@ -75,6 +75,7 @@ class LikelihoodFitterCheck: public Tool {
 	bool ifPlot2DFOM = false;
     std::string pdffile;
     bool fUsePDFFile = 0;
+    std::string mode;
     TH1D pdf;
 	
 

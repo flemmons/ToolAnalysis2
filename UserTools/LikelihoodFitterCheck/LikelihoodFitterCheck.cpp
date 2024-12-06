@@ -160,6 +160,7 @@ bool LikelihoodFitterCheck::Execute(){
     double meantime = myFoMCalculator->FindSimpleTimeProperties(ConeAngle);
     Double_t fom = -999.999*100;
     double timefom = -999.999*100;
+    double timefomlikelihood = -999.999*100;
     double conefom = -999.999*100;
     double conefomlnl = -999.999 * 100;
     Double_t fompdf = -999.999 * 100;
@@ -173,9 +174,10 @@ bool LikelihoodFitterCheck::Execute(){
     gr_parallel->SetPoint(j, dlpara[j], dlfom[j]);
 
     if (fUsePDFFile) {
-        myFoMCalculator->ConePropertiesLnL(seedX, seedY, seedZ, seedDirX, seedDirY, seedDirZ, ConeAngle, conefomlnl, pdf, maxphi, minphi);
+        myFoMCalculator->ConePropertiesWrong(seedX, seedY, seedZ, seedDirX, seedDirY, seedDirZ, ConeAngle, conefomlnl, pdf, maxphi, minphi);
         cout << "conefomlnl: " << conefomlnl << endl;
-        fompdf = 0.5 * timefom + 0.5 * conefomlnl;
+        myFoMCalculator->TimePropertiesLnL(meantime,timefomlikelihood);
+	fompdf = 0.5*timefomlikelihood + 0.5*conefomlnl;
         pdf_parallel->SetPoint(j, dlpara[j], fompdf);
     }
   } 
@@ -203,9 +205,11 @@ bool LikelihoodFitterCheck::Execute(){
     Double_t fom = -999.999*100;
     Double_t fompdf = -999.999 * 100;
     double timefom = -999.999*100;
+    double timefomlikelihood = -999.999*100;
     double conefom = -999.999*100;
     double conefomlnl = -999.999 * 100;
     double coneAngle = 42.0;
+    double phimax,phimin;
     myFoMCalculator->TimePropertiesLnL(meantime,timefom);
     myFoMCalculator->ConePropertiesFoM(ConeAngle,conefom);
     fom = timefom*0.5+conefom*0.5;
@@ -216,8 +220,9 @@ bool LikelihoodFitterCheck::Execute(){
     gr_transverse->SetPoint(j, dltrans[j], dlfom[j]);
     if (fUsePDFFile) {
         cout << "pdf fom coming\n";
-       // myFoMCalculator->ConePropertiesLnL(seedX, seedY, seedZ, trueDirX, trueDirY, trueDirZ, coneAngle, conefomlnl, pdf);
-        fompdf = timefom * conefomlnl;
+        myFoMCalculator->ConePropertiesWrong(seedX, seedY, seedZ, trueDirX, trueDirY, trueDirZ, coneAngle, conefomlnl, pdf,phimax,phimin);
+        myFoMCalculator->TimePropertiesLnL(meantime,timefomlikelihood);
+	fompdf = 0.5*timefomlikelihood + 0.5*conefomlnl;
         pdf_transverse->SetPoint(j, dltrans[j], conefomlnl);
     }
   }
@@ -233,44 +238,47 @@ bool LikelihoodFitterCheck::Execute(){
       double dy_trans = dl_trans * v.Y();
       double dz_trans = dl_trans * v.Z();
       double phimax, phimin;
-      for(int k=0; k<100; k++) {
-        for(int m=0; m<200; m++) {
-        	seedX = trueVtxX - 50*dx_trans + k*dx_trans - 50*dx_para + m*dx_para;
-        	seedY = trueVtxY - 50*dy_trans + k*dy_trans - 50*dy_para + m*dy_para;
-        	seedZ = trueVtxZ - 50*dz_trans + k*dz_trans - 50*dz_para + m*dz_para;
-        	seedT = trueVtxT;
-            seedDirX = cos(m * TMath::Pi() / 100) * sin(k * TMath::Pi() / 100);
-            seedDirY = sin(m * TMath::Pi() / 100) * sin(k * TMath::Pi() / 100);
-            seedDirZ = cos(k * TMath::Pi() / 100);
-            if (mode == "Position") myvtxgeo->CalcExtendedResiduals(seedX, seedY, seedZ, seedT, trueDirX, trueDirY, trueDirZ);
-            else if (mode == "Direction") myvtxgeo->CalcExtendedResiduals(trueVtxX, trueVtxY, trueVtxZ, seedT, seedDirX, seedDirY, seedDirZ);
-        	int nhits = myvtxgeo->GetNDigits();
-          double meantime = myFoMCalculator->FindSimpleTimeProperties(ConeAngle);
-          Double_t fom = -999.999*100;
-          Double_t fompdf = -999.999 * 100;
-          double timefom = -999.999*100;
-          double conefom = -999.999*100;
-          double conefomlnl = -999.999 * 100;
-          double coneAngle = 42.0;
-          myFoMCalculator->TimePropertiesLnL(meantime,timefom);
-          myFoMCalculator->ConePropertiesFoM(coneAngle,conefom);
-          fom = timefom * 0.5 + conefom * 0.5;
-          //fom = timefom;
-          cout<<"k,m, timeFOM, coneFOM, fom = "<<k<<", "<<m<<", "<<timefom<<", "<<conefom<<", "<<fom<<endl;
-          Likelihood2D->SetBinContent(m, k, fom);
-          if (fUsePDFFile) {
-              if (mode == "Position")myFoMCalculator->ConePropertiesLnL(seedX, seedY, seedZ, trueDirX, trueDirY, trueDirZ, coneAngle, conefomlnl, pdf, phimax, phimin);
-              else if (mode == "Direction")myFoMCalculator->ConePropertiesLnL(trueVtxX, trueVtxY, trueVtxZ, seedDirX, seedDirY, seedDirZ, coneAngle, conefomlnl, pdf, phimax, phimin);
-              fompdf = 0.5 * timefom + 0.5 * (conefomlnl);
-              cout << "coneFOMlnl: " << conefomlnl << endl;
-              if (k == 50 && m == 50) {
-                  std::cout << "!!!OUTPUT!!! at true:\n";
+      for (int k = 0; k < 100; k++) {
+          for (int m = 0; m < 200; m++) {
+              seedX = trueVtxX - 50 * dx_trans + k * dx_trans - 50 * dx_para + m * dx_para;
+              seedY = trueVtxY - 50 * dy_trans + k * dy_trans - 50 * dy_para + m * dy_para;
+              seedZ = trueVtxZ - 50 * dz_trans + k * dz_trans - 50 * dz_para + m * dz_para;
+              seedT = trueVtxT;
+              seedDirX = cos(m * TMath::Pi() / 100) * sin(k * TMath::Pi() / 100);
+              seedDirY = sin(m * TMath::Pi() / 100) * sin(k * TMath::Pi() / 100);
+              seedDirZ = cos(k * TMath::Pi() / 100);
+              if (mode == "Position") myvtxgeo->CalcExtendedResiduals(seedX, seedY, seedZ, seedT, trueDirX, trueDirY, trueDirZ);
+              else if (mode == "Direction") myvtxgeo->CalcExtendedResiduals(trueVtxX, trueVtxY, trueVtxZ, seedT, seedDirX, seedDirY, seedDirZ);
+              int nhits = myvtxgeo->GetNDigits();
+              double meantime = myFoMCalculator->FindSimpleTimeProperties(ConeAngle);
+              Double_t fom = -999.999 * 100;
+              Double_t fompdf = -999.999 * 100;
+              double timefom = -999.999 * 100;
+              double timefomlikelihood = -999.999 * 100;
+              double conefom = -999.999 * 100;
+              double conefomlnl = -999.999 * 100;
+              double coneAngle = 42.0;
+              myFoMCalculator->TimePropertiesLnL(meantime, timefom);
+              myFoMCalculator->ConePropertiesFoM(coneAngle, conefom);
+              fom = timefom * 0.5 + conefom * 0.5;
+              //fom = timefom;
+              cout << "k,m, timeFOM, coneFOM, fom = " << k << ", " << m << ", " << timefom << ", " << conefom << ", " << fom << endl;
+              Likelihood2D->SetBinContent(m, k, fom);
+              if (fUsePDFFile) {
+                  if (mode == "Position")myFoMCalculator->ConePropertiesWrong(seedX, seedY, seedZ, trueDirX, trueDirY, trueDirZ, coneAngle, conefomlnl, pdf, phimax, phimin);
+                  else if (mode == "Direction")myFoMCalculator->ConePropertiesWrong(trueVtxX, trueVtxY, trueVtxZ, seedDirX, seedDirY, seedDirZ, coneAngle, conefomlnl, pdf, phimax, phimin);
+
+                  myFoMCalculator->TimePropertiesLnL(meantime, timefomlikelihood);
+                  fompdf = 0.5 * timefomlikelihood + 0.5 * conefomlnl;
+                  cout << "coneFOMlnl: " << conefomlnl << endl;
+                  if (k == 50 && m == 50) {
+                      std::cout << "!!!OUTPUT!!! at true:\n";
+                  }
+                  std::cout << "conefomlnl, timefom, fompdf: " << conefomlnl << ", " << timefom << ", " << fompdf << endl;
+                  std::cout << "phimax, phimin: " << phimax << ", " << phimin << endl;
+                  Likelihood2D_pdf->SetBinContent(m, k, fompdf);
               }
-              std::cout<<"conefomlnl, timefom, fompdf: " << conefomlnl << ", " << timefom << ", " << fompdf << endl;
-              std::cout << "phimax, phimin: " << phimax << ", " << phimin << endl;
-              Likelihood2D_pdf->SetBinContent(m, k, fompdf);
           }
-        }
       }
     }
 

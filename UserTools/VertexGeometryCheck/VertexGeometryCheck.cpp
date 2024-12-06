@@ -1,53 +1,55 @@
 #include "VertexGeometryCheck.h"
 
-VertexGeometryCheck::VertexGeometryCheck():Tool(){}
+    VertexGeometryCheck::VertexGeometryCheck() :Tool() {}
 
 
-bool VertexGeometryCheck::Initialise(std::string configfile, DataModel &data){
+    bool VertexGeometryCheck::Initialise(std::string configfile, DataModel& data) {
 
-  /////////////////// Usefull header ///////////////////////
-  if(configfile!="")  m_variables.Initialise(configfile); //loading config file
-  //m_variables.Print();
-  std::string output_filename;
-  m_variables.Get("verbosity", verbosity);
-  m_variables.Get("OutputFile", output_filename);
-  m_variables.Get("ShowEvent", fShowEvent);
-  m_variables.Get("Theta", vertheta);
-  m_variables.Get("Phi", verphi);
-  m_variables.Get("StripTimePlot", StripTimePlot);
-  m_variables.Get("CleanHitsOnly", cleanHitsOnly);
-  fOutput_tfile = new TFile(output_filename.c_str(), "recreate");
-  
-  // Histograms
-  flappdextendedtres = new TH1D("lappdextendedtres","lappd Extended time residual",1000, -10, 30); 
-  fpmtextendedtres = new TH1D("pmtextendedtres","pmt Extended time residual",1000, -10, 30); 
-  fpointtres = new TH1D("pointres","Point time residual",1000,-10,30);
-  fdelta = new TH1D("delta", "delta", 1000, -10, 30); 
-  fmeanres = new TH1D("meanres","Mean time residual",1000, -10, 30);
-  fltrack = new TH1D("ltrack","track path length",1000,0,1000);
-  flphoton = new TH1D("lphoton","photon path length",1000,0,1000);
-  fzenith = new TH1D("zenith","zenith angle",180,0,180);
-  fazimuth = new TH1D("azimuth","azimuth angle",180,0,360);
-  fconeangle = new TH1D("coneangle","cone angle",90,0,90);
-  fdigitcharge = new TH1D("digitcharge","digit charge", 150,0,150);
-  fdigittime = new TH1D("digittime", "digit time", 200, -10, 10);
-  flappdtimesmear = new TH1D("lappdtimesmear","lappdtimesmear", 100, 0, 0.1);
-  fpmttimesmear = new TH1D("pmttimesmear","pmttimesmear",100, 0, 1.0);   
-  fYvsDigitTheta_all = new TH2D("YvsDigitTheta_all", "Y vs DigitTheta", 400, -200, 200, 400, -200, 200);
-  fYvsDigitTheta_all->GetXaxis()->SetTitle("DigitTheta [deg]");                                             
-  fYvsDigitTheta_all->GetYaxis()->SetTitle("Digit Y [cm]");   
-  if (StripTimePlot > 0) {
-      StripHits1 = new TH2D("LAPPD Strip Time Residual", "LAPPD Strip Time Residual", 300, 0, 15, 400, -200, 200);
-      StripHits1->SetTitle("LAPPD Hit Time vs. strip");
-      StripHits1->GetYaxis()->SetTitle("Hit Time");
-      StripHits1->GetXaxis()->SetTitle("Strip Location(x)");
-  }
-  m_data= &data; //assigning transient data pointer
-  /////////////////////////////////////////////////////////////////
 
-  return true;
-}
+        /////////////////// Usefull header ///////////////////////
+        if (configfile != "")  m_variables.Initialise(configfile); //loading config file
+        //m_variables.Print();
+        std::string output_filename;
+        m_variables.Get("verbosity", verbosity);
+        m_variables.Get("OutputFile", output_filename);
+        m_variables.Get("ShowEvent", fShowEvent);
+        m_variables.Get("Theta", vertheta);
+        m_variables.Get("Phi", verphi);
+        m_variables.Get("StripTimePlot", StripTimePlot);
+        m_variables.Get("CleanHitsOnly", cleanHitsOnly);
+        fOutput_tfile = new TFile(output_filename.c_str(), "recreate");
 
+        // Histograms
+        flappdextendedtres = new TH1D("lappdextendedtres", "lappd Extended time residual", 1000, -10, 30);
+        fpmtextendedtres = new TH1D("pmtextendedtres", "pmt Extended time residual", 1000, -10, 30);
+        fpointtres = new TH1D("pointres", "Point time residual", 1000, -10, 30);
+        fdelta = new TH1D("delta", "delta", 1000, -10, 30);
+        fmeanres = new TH1D("meanres", "Mean time residual", 1000, -10, 30);
+        fltrack = new TH1D("ltrack", "track path length", 1000, 0, 1000);
+        flphoton = new TH1D("lphoton", "photon path length", 1000, 0, 1000);
+        fzenith = new TH1D("zenith", "zenith angle", 180, 0, 180);
+        fazimuth = new TH1D("azimuth", "azimuth angle", 180, 0, 360);
+        fconeangle = new TH1D("coneangle", "cone angle", 90, 0, 90);
+        fdigitcharge = new TH1D("digitcharge", "digit charge", 150, 0, 150);
+        fdigittime = new TH1D("digittime", "digit time", 200, -10, 10);
+        flappdtimesmear = new TH1D("lappdtimesmear", "lappdtimesmear", 100, 0, 0.1);
+        fpmttimesmear = new TH1D("pmttimesmear", "pmttimesmear", 100, 0, 1.0);
+        fYvsDigitTheta_all = new TH2D("YvsDigitTheta_all", "Y vs DigitTheta", 400, -200, 200, 400, -200, 200);
+        fYvsDigitTheta_all->GetXaxis()->SetTitle("DigitTheta [deg]");
+        fYvsDigitTheta_all->GetYaxis()->SetTitle("Digit Y [cm]");
+        if (StripTimePlot > 0) {
+            StripHits1 = new TH2D("LAPPD Strip Time Residual", "LAPPD Strip Time Residual", 300, 0, 15, 400, -200, 200);
+            StripHits1->SetTitle("LAPPD Hit Time vs. strip");
+            StripHits1->GetYaxis()->SetTitle("Hit Time");
+            StripHits1->GetXaxis()->SetTitle("Strip Location(x)");
+        }
+        m_data = &data; //assigning transient data pointer
+        /////////////////////////////////////////////////////////////////
+
+
+
+        return true;
+    }
 
 bool VertexGeometryCheck::Execute() {
     Log("===========================================================================================", v_debug, verbosity);

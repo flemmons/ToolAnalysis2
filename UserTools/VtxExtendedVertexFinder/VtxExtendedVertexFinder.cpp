@@ -187,7 +187,15 @@ RecoVertex* VtxExtendedVertexFinder::FitGridSeeds(std::vector<RecoVertex>* vSeed
     fSeedPos = &(vSeedVtxList->at(n));
   	fSimpleVertex= this->FindSimpleDirection(fSeedPos);
     myOptimizer->LoadVertex(fSimpleVertex); //Load vertex seed
-    myOptimizer->FitExtendedVertexWithMinuit(); //scan the point position in 4D space
+
+    if (!fUsePDFFile) {
+        myOptimizer->FitExtendedVertexWithMinuit(); //scan the point position in 4D space
+    }
+    else {
+        std::cout << "Using new likelihood charge fit" << endl;
+        myOptimizer->FitExtendedVertexWithMinuit(pdf);
+    }
+
     vtxFOM = myOptimizer->GetFittedVertex()->GetFOM();
     vtxRecoStatus = myOptimizer->GetFittedVertex()->GetStatus();
  

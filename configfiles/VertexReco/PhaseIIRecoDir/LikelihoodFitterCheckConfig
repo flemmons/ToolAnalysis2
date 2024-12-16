@@ -1,8 +1,0 @@
-verbosity 5
-
-OutputFile /Data/Neutronsim/LFCheck-test1078-28.root
-ifPlot2DFOM 1
-ShowEvent 28
-UsePDFFile 0
-PDFFile /Data/Singletest/VGCheck-pdfcharge.root
-SimpleDirectionTest 0

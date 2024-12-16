@@ -1,7 +1,0 @@
-verbosity 5
-
-OutputFile /Jingbo/VGCheck-LAPPDcompnosh-recoMRD.root
-#ShowEvent 3
-#Theta 1.0
-#Phi 1.0
-StripTimePlot 0

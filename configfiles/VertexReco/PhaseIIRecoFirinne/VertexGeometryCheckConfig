@@ -1,7 +1,0 @@
-verbosity 5
-
-OutputFile /Jingbo/VGCheck-1078-all-05smear.root
-#ShowEvent 28
-#Theta 1.0
-#Phi 1.0
-StripTimePlot 0

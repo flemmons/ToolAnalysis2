@@ -1,8 +1,0 @@
-verbosity 5
-
-OutputFile /Jingbo/Neutronsim/LFCheck-testHET-28-0726.root
-ifPlot2DFOM 1
-ShowEvent 28
-UsePDFFile 0
-PDFFile /Data/Singletest/VGCheck-pdfcharge.root
-SimpleDirectionTest 0

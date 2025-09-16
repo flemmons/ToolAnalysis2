@@ -20,7 +20,9 @@ bool LikelihoodFitterCheck::Initialise(std::string configfile, DataModel &data){
   Likelihood2D = new TH2D("Likelihood2D","Figure of merit 2D", 200, -50, 150, 100, -50, 50);
   gr_parallel = new TGraph();
   gr_parallel->SetTitle("Figure of merit parallel to the track direction");
-	gr_transverse = new TGraph();
+  gr_transverse = new TGraph();
+  gr_zenith = new TGraph();
+  gr_zenith->SetTitle("Figure of merit by angle");
   gr_transverse->SetTitle("Figure of merit transverse to the track direction");
   m_data= &data; //assigning transient data pointer
   /////////////////////////////////////////////////////////////////
@@ -52,7 +54,7 @@ bool LikelihoodFitterCheck::Execute(){
   m_data->Stores.at("ANNIEEvent")->Get("EventNumber",fEventNumber);
   
   // Only check this event
-  if(fShowEvent>0 && (int)fEventNumber!=fShowEvent) return true; 
+  if(fShowEvent>0 && fEventNumber!=fShowEvent) return true; 
   	
   logmessage = "Likelihood check for MC Entry Number " + to_string(fMCEventNum) 
                + " , MC Trigger Number" + to_string(fMCTriggerNum) 
@@ -74,21 +76,26 @@ bool LikelihoodFitterCheck::Execute(){
   	return false;
   }
 	
-	double recoVtxX, recoVtxY, recoVtxZ, recoVtxT, recoDirX, recoDirY, recoDirZ;
+  double recoVtxX, recoVtxY, recoVtxZ, recoVtxT, recoDirX, recoDirY, recoDirZ;
   double trueVtxX, trueVtxY, trueVtxZ, trueVtxT, trueDirX, trueDirY, trueDirZ;
   double seedX, seedY, seedZ, seedT, seedDirX, seedDirY, seedDirZ;
+  double peakX, peakY, peakZ, bestFOM;
   double ConeAngle = Parameters::CherenkovAngle();
 
   // Get true Vertex information
   Position vtxPos = fTrueVertex->GetPosition();
 	Direction vtxDir = fTrueVertex->GetDirection();
-	trueVtxX = vtxPos.X();
-  trueVtxY = vtxPos.Y();
-  trueVtxZ = vtxPos.Z();
+	trueVtxX = -52.9262; //vtxPos.X();
+  trueVtxY = -46.4062; //vtxPos.Y();
+  trueVtxZ = -185.982; //vtxPos.Z();
   trueVtxT = fTrueVertex->GetTime();
   trueDirX = vtxDir.X();
   trueDirY = vtxDir.Y();
   trueDirZ = vtxDir.Z();
+  peakX = trueVtxX;
+  peakY = trueVtxY;
+  peakZ = trueVtxZ;
+  bestFOM = 0;
   
   if(verbosity>0) cout<<"True vertex  = ("<<trueVtxX<<", "<<trueVtxY<<", "<<trueVtxZ<<", "<<trueVtxT<<", "<<trueDirX<<", "<<trueDirY<<", "<<trueDirZ<<")"<<endl;
   
@@ -96,6 +103,17 @@ bool LikelihoodFitterCheck::Execute(){
   VertexGeometry* myvtxgeo = VertexGeometry::Instance();
   myvtxgeo->LoadDigits(fDigitList);
   myFoMCalculator->LoadVertexGeometry(myvtxgeo); //Load vertex geometry
+  
+  // fom at true vertex position
+  double fom = -999.999*100;
+  double timefom = -999.999*100;
+  double conefom = -999.999*100;
+  myvtxgeo->CalcExtendedResiduals(trueVtxX ,trueVtxY ,trueVtxZ, 0.0, trueDirX, trueDirY,trueDirZ);
+  myFoMCalculator->TimePropertiesLnL(trueVtxT,timefom);
+  myFoMCalculator->ConePropertiesFoM(ConeAngle,conefom);
+  fom = timefom*0.5+conefom*0.5;
+  if(verbosity>0)  cout<<"LilelihoodFitterCheck Tool: "<<"FOM at true vertex = "<<fom<<endl;
+  
   //parallel direction
   double dl = 1.0; // step size  = 1 cm along the track
   double dx = dl * trueDirX;
@@ -114,14 +132,14 @@ bool LikelihoodFitterCheck::Execute(){
     myvtxgeo->CalcExtendedResiduals(seedX, seedY, seedZ, 0.0, seedDirX, seedDirY, seedDirZ);
     int nhits = myvtxgeo->GetNDigits();
     double meantime = myFoMCalculator->FindSimpleTimeProperties(ConeAngle);
-    Double_t fom = -999.999*100;
+    double fom = -999.999*100;
     double timefom = -999.999*100;
     double conefom = -999.999*100;
     myFoMCalculator->TimePropertiesLnL(meantime,timefom);
     myFoMCalculator->ConePropertiesFoM(ConeAngle,conefom);
     fom = timefom*0.5+conefom*0.5;
-    cout<<"timeFOM, coneFOM, fom = "<<timefom<<", "<<conefom<<", "<<fom<<endl;
-    fom = timefom;
+    if(verbosity>1) cout<<"timeFOM, coneFOM, fom = "<<timefom<<", "<<conefom<<", "<<fom<<endl;
+    //fom = timefom;
     dlpara[j] = - 50*dl + j*dl;
     dlfom[j] = fom;
     gr_parallel->SetPoint(j, dlpara[j], dlfom[j]);
@@ -155,7 +173,7 @@ bool LikelihoodFitterCheck::Execute(){
     myFoMCalculator->ConePropertiesFoM(ConeAngle,conefom);
     fom = timefom*0.5+conefom*0.5;
     //fom = timefom;
-    cout<<"timeFOM, coneFOM, fom = "<<timefom<<", "<<conefom<<", "<<fom<<endl;
+    if(verbosity>1) cout<<"timeFOM, coneFOM, fom = "<<timefom<<", "<<conefom<<", "<<fom<<endl;
     dltrans[j] = - 50*dl + j*dl;
     dlfom[j] = fom;
     gr_transverse->SetPoint(j, dlpara[j], dlfom[j]);
@@ -190,20 +208,49 @@ bool LikelihoodFitterCheck::Execute(){
           myFoMCalculator->ConePropertiesFoM(coneAngle,conefom);
           fom = timefom*0.5+conefom*0.5;
           //fom = timefom;
-          cout<<"k,m, timeFOM, coneFOM, fom = "<<k<<", "<<m<<", "<<timefom<<", "<<conefom<<", "<<fom<<endl;
+          if(verbosity>1) cout<<"k,m, timeFOM, coneFOM, fom = "<<k<<", "<<m<<", "<<timefom<<", "<<conefom<<", "<<fom<<endl;
           Likelihood2D->SetBinContent(m, k, fom);
-        }
+          if(fom > bestFOM){
+	    peakX = seedX;
+	    peakY = seedY;
+	    peakZ = seedZ;
+	  }
+	}
       }
     }
+
+  double zenith =0;
+  for (int k = 0; k < 100; k++) {
+        zenith = k * TMath::Pi() / 200;
+	seedT = trueVtxT;
+	seedDirX = trueDirX * TMath::Sin(zenith);
+        seedDirY = trueDirY * TMath::Sin(zenith);
+        seedDirZ = TMath::Cos(zenith);
+        myvtxgeo->CalcExtendedResiduals(peakX, peakY, peakZ, seedT, seedDirX, seedDirY, seedDirZ);
+        int nhits = myvtxgeo->GetNDigits();
+        double meantime = myFoMCalculator->FindSimpleTimeProperties(ConeAngle);
+        Double_t fom = -999.999 * 100;
+        double timefom = -999.999 * 100;
+        double conefom = -999.999 * 100;
+        double coneAngle = 42.0;
+        myFoMCalculator->TimePropertiesLnL(meantime, timefom);
+        myFoMCalculator->ConePropertiesFoM(coneAngle, conefom);
+        fom = timefom * 0.5 + conefom * 0.5;
+        if(verbosity>1) cout << "k, timeFOM, coneFOM, fom = " << k << ", " << timefom << ", " << conefom << ", " << fom << endl;
+        gr_zenith->SetPoint(k, zenith, fom);
+  }
+
   delete myFoMCalculator;
   return true;
 }
+
 
 
 bool LikelihoodFitterCheck::Finalise(){
   fOutput_tfile->cd();
   gr_parallel->Write();
   gr_transverse->Write();
+  gr_zenith->Write();
   fOutput_tfile->Write();
   fOutput_tfile->Close();
   Log("LikelihoodFitterCheck exitting", v_debug,verbosity);

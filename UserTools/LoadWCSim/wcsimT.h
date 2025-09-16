@@ -47,7 +47,7 @@ public :
    WCSimRootOptions   *wcsimrootopts=nullptr;
    
    // TODO implement a verbosity arg
-   int             verbose=1;
+   int             verbose=5;
 
    // List of branches
    TBranch        *b_wcsimrootevent;                  //!
@@ -138,10 +138,11 @@ wcsimT::~wcsimT()
 
 Int_t wcsimT::GetEntry(Long64_t entry)
 {
-   if(verbose>2) cout<<"getting wcsimT entry "<<entry<<endl;
+   if(verbose>2) cout<<"let's change this getting wcsimT entry "<<entry<<endl;
+   if(verbose>2) cout<<"Just Trying this time"<<endl;
 
    if(entry>last_entry_of_current_tree){
-        //std::cout<<"Abdout to retrieve the first entry of a new file: cleanup"<<std::endl;
+        std::cout<<"Abdout to retrieve the first entry of a new file: cleanup"<<std::endl;
         if(wcsimrootevent) delete wcsimrootevent;
         if(wcsimrootevent_mrd) delete wcsimrootevent_mrd;
         if(wcsimrootevent_facc) delete wcsimrootevent_facc;
@@ -149,7 +150,7 @@ Int_t wcsimT::GetEntry(Long64_t entry)
         wcsimrootevent_mrd = nullptr;
         wcsimrootevent_facc = nullptr;
 
-        //std::cout<<"After cleanup, object table is: "<<std::endl;
+        std::cout<<"After cleanup, object table is: "<<std::endl;
         //gObjectTable->Print();
         
         Long64_t localentry = fChain->LoadTree(entry);
@@ -157,7 +158,7 @@ Int_t wcsimT::GetEntry(Long64_t entry)
              return -1;
         }
         fCurrent=fChain->GetTreeNumber();
-        //std::cout<<"Loaded file "<<fCurrent<<std::endl;
+        std::cout<<"Loaded file "<<fCurrent<<std::endl;
         
         Int_t branchok=0;
         branchok = fChain->GetTree()->SetBranchAddress("wcsimrootevent",&wcsimrootevent, &b_wcsimrootevent);
@@ -176,6 +177,7 @@ Int_t wcsimT::GetEntry(Long64_t entry)
         //std::cout<<last_entry_of_current_tree<<std::endl;
 }
    // Get next entry from TTree
+   if(verbose>2) std::cout<<"Got wcsimT entry "<<entry<<endl;
    return fChain->GetEntry(entry);
 }
 

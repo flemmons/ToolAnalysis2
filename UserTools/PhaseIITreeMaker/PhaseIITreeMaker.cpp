@@ -1557,7 +1557,7 @@ bool PhaseIITreeMaker::FillMCTruthInfo() {
     }
   } else {
     Log("PhaseIITreeMaker Tool: Primary Pdgs information missing. Continuing to build tree",v_message,verbosity);
-    successful_load = false;
+    //successful_load = false;
   }
 
   int pi0count, pipcount, pimcount, K0count, Kpcount, Kmcount;

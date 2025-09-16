@@ -175,7 +175,7 @@ bool ClusterFinder::Execute(){
       return false;
     }
   } else if (HitStoreName == "Hits"){
-    bool got_hits = m_data->Stores["ANNIEEvent"]->Get("Hits", Hits);
+    bool got_hits = m_data->Stores.at("ANNIEEvent")->Get("Hits", Hits);
     if (!got_hits){
       std::cout << "No Hits store in ANNIEEvent! " << std::endl;
       return false;
@@ -351,6 +351,7 @@ bool ClusterFinder::Execute(){
   max_Nhits = 0;
   local_cluster = 0;
   v_clusters.clear();
+  double first_hit=99999;
   do {
     //cout << "Start do loop" << endl;
     max_Nhits = 0;
@@ -359,6 +360,7 @@ bool ClusterFinder::Execute(){
         max_Nhits = it->second.size();
         local_cluster = it->first;
       } 
+      if(it->first<first_hit) first_hit=it->first;
     }
     if (max_Nhits < MinHitsPerCluster) {
       if (verbose > 1 ) cout << "No more clusters with > " << MinHitsPerCluster<< " hits" << endl; 

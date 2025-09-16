@@ -77,8 +77,8 @@ bool LoadWCSimLAPPD::Initialise(std::string configfile, DataModel &data){
 
 	// Get trigger window parameters from CStore
 	// =========================================
-	m_data->CStore.Get("WCSimPreTriggerWindow",pretriggerwindow);
-	m_data->CStore.Get("WCSimPostTriggerWindow",posttriggerwindow);
+	m_data->CStore.Get("WCSimPreTriggerWindow", pretriggerwindow);  pretriggerwindow = -400; //hard-coded for testing.
+	m_data->CStore.Get("WCSimPostTriggerWindow", posttriggerwindow); posttriggerwindow = 1600; //hard-coded for testing.
 	if(verbosity>2) cout<<"WCSimPreTriggerWindow="<<pretriggerwindow
 					  <<", WCSimPostTriggerWindow="<<posttriggerwindow<<endl;
 	
@@ -175,7 +175,7 @@ bool LoadWCSimLAPPD::Execute(){
 			for(int hiti=0; hiti<(int)unassignedhits.size(); hiti++){
 				MCLAPPDHit nexthit = unassignedhits.at(hiti);
 				double digitst = nexthit.GetTime(); // ABSOLUTE
-				double relativedigitst=digitst-wcsimtriggertime; // relative to trigger time
+				double relativedigitst = digitst - wcsimtriggertime; // relative to trigger time
 				if( (relativedigitst)>(pretriggerwindow) &&
 					(relativedigitst)<(posttriggerwindow) ){
 					// this lappd hit is within the trigger window; note it
@@ -277,7 +277,11 @@ bool LoadWCSimLAPPD::Execute(){
 				
 				// calculate relative time within trigger
 				double digitst  = LAPPDEntry->lappdhit_stripcoort->at(runningcount);
-				double relativedigitst=digitst-wcsimtriggertime;
+				/*if (runningcount == 0 && digitst - wcsimtriggertime < -1000) {  //removed  triggershift for testing
+					std::cout << "adjusting trigger time to 0\n";
+					wcsimtriggertime = 0;
+				}*/
+				double relativedigitst = digitst-wcsimtriggertime;
 				
 				float digiq = 1; // N/A, but useful to be non-zero
 				std::vector<double> globalpos{digitsx,digitsy,digitsz};

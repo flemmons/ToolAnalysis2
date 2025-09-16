@@ -72,6 +72,7 @@ class HitCleaner: public Tool {
 
  private:
   void Reset();
+  void CBCheck(std::vector<RecoDigit*>* unfilteredDigits, std::vector<RecoDigit*>* filteredDigits);
   
   // running mode
   int fConfig;

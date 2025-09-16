@@ -38,6 +38,13 @@ bool LoadWCSim::Initialise(std::string configfile, DataModel &data){
 		Log("LoadWCSim Tool: Assuming to use smeared digit times",v_warning,verbosity);
 		use_smeared_digit_time=1;
 	}
+	if (use_smeared_digit_time == 0) {
+		get_ok = m_variables.Get("FirstHit", firstHit);
+		if (not get_ok) {
+			Log("LoadWCSim Tool: No firstHit setting applied; setting to 1", v_warning, verbosity);
+			firstHit = 1;
+		}
+	}
 	get_ok = m_variables.Get("LappdNumStrips", LappdNumStrips);
 	if(not get_ok){
 		Log("LoadWCSim Tool: Assuming to use 56 LAPPD striplines",v_warning,verbosity);
@@ -363,7 +370,7 @@ bool LoadWCSim::Execute(){
 	}
 	MCFile = WCSimEntry->GetCurrentFile()->GetName();
 	
-
+	hitNumber = 0;
 	MCHits->clear();
 	TDCData->clear();
 	MCNeutCap.clear();
@@ -629,18 +636,24 @@ bool LoadWCSim::Execute(){
 			} else {
 				// instead take the true time of the first photon
 				std::vector<int> photonids = digihit->GetPhotonIds();   // indices of the digit's photons
+				std::cout << "LoadWCSim Tool: number of photons in this hit: " << photonids.size() << endl;
 				double earliestphotontruetime=999999999999;
-				for(int& aphotonindex : photonids){
-					WCSimRootCherenkovHitTime* thehittimeobject =
-						 (WCSimRootCherenkovHitTime*)firsttrigt->GetCherenkovHitTimes()->At(aphotonindex);
-					if(thehittimeobject==nullptr){
-						cerr<<"LoadWCSim Tool: ERROR! Retrieval of photon from digit returned nullptr!"<<endl;
-						continue;
+				if (firstHit) {
+					for (int& aphotonindex : photonids) {
+						WCSimRootCherenkovHitTime* thehittimeobject =
+							(WCSimRootCherenkovHitTime*)firsttrigt->GetCherenkovHitTimes()->At(aphotonindex);
+						if (thehittimeobject == nullptr) {
+							cerr << "LoadWCSim Tool: ERROR! Retrieval of photon from digit returned nullptr!" << endl;
+							continue;
+						}
+						double aphotontime = static_cast<double>(thehittimeobject->GetTruetime());
+						if (aphotontime < earliestphotontruetime) { earliestphotontruetime = aphotontime; }
 					}
-					double aphotontime = static_cast<double>(thehittimeobject->GetTruetime());
-					if(aphotontime<earliestphotontruetime){ earliestphotontruetime = aphotontime; }
+					digittime = earliestphotontruetime;
 				}
-				digittime = earliestphotontruetime;
+				else {
+
+				}
 			}
 			if(verbosity>2){ cout<<"digittime is "<<digittime<<" [ns] from Trigger"<<endl; }
 			float digiq = digihit->GetQ();
@@ -652,10 +665,11 @@ bool LoadWCSim::Execute(){
 			if (!splitSubtriggers) digittime += EventTimeNs;			
 			//std::cout <<"digittime after adding event time: "<<digittime<<std::endl;
 
-			MCHit nexthit(key, digittime, digiq, parents);
+			MCHit nexthit(hitNumber, key, digittime, digiq, parents);
 			if(MCHits->count(key)==0) MCHits->emplace(key, std::vector<MCHit>{nexthit});
 			else MCHits->at(key).push_back(nexthit);
 			if(verbosity>2) cout<<"digit added"<<endl;
+			hitNumber++;
 		}
 		if(verbosity>2) cout<<"done with tank digits"<<endl;
 		
@@ -700,10 +714,11 @@ bool LoadWCSim::Execute(){
 			std::vector<int> parents = GetHitParentIds(digihit, firsttrigm);
 			if (!splitSubtriggers) digittime += EventTimeNs;			
 
-			MCHit nexthit(key, digittime, digiq, parents);
+			MCHit nexthit(hitNumber, key, digittime, digiq, parents);
 			if(TDCData->count(key)==0) {TDCData->emplace(key, std::vector<MCHit>{nexthit}); if (Mrd_Chankey_Layer.at(key)==0) mrd_firstlayer=true; if (Mrd_Chankey_Layer.at(key)==10) mrd_lastlayer=true;}
 			else TDCData->at(key).push_back(nexthit);
 			if(verbosity>2) cout<<"digit added"<<endl;
+			hitNumber++;
 		}
 		if(verbosity>2) cout<<"done with mrd digits"<<endl;
 		
@@ -748,10 +763,11 @@ bool LoadWCSim::Execute(){
 			std::vector<int> parents = GetHitParentIds(digihit, firsttrigv);
 			digittime += EventTimeNs;			
 
-			MCHit nexthit(key, digittime, digiq, parents);
+			MCHit nexthit(hitNumber, key, digittime, digiq, parents);
 			if(TDCData->count(key)==0) TDCData->emplace(key, std::vector<MCHit>{nexthit});
 			else TDCData->at(key).push_back(nexthit);
 			if(verbosity>2) cout<<"digit added"<<endl;
+			hitNumber++;
 		}
 		if(verbosity>2) cout<<"done with veto digits"<<endl;
 		
@@ -847,7 +863,8 @@ bool LoadWCSim::Execute(){
 	m_data->Stores.at("ANNIEEvent")->Set("MCParticles",MCParticles,true);
 	if(verbosity>2) cout<<"hits"<<endl;
 	m_data->Stores.at("ANNIEEvent")->Set("MCHits",MCHits,true);
-	if(verbosity>2) cout<<"tdcdata"<<endl;
+	if (verbosity > 2) cout << "tdcdata: size = " << TDCData->size() << endl;
+
 	m_data->Stores.at("ANNIEEvent")->Set("TDCData",TDCData,true);
 	// TODO?
 	// right now we have three Time variables:
@@ -1505,15 +1522,19 @@ std::vector<int> LoadWCSim::GetHitParentIds(WCSimRootCherenkovDigiHit* digihit, 
 			thephotonsid+=timeArrayOffsetMap.at(digihit->GetTubeId());
 		}
 		// get the CherenkovHitTime objects themselves, which contain the photon parent IDs
-		WCSimRootCherenkovHitTime *thehittimeobject = 
+		 *thehittimeobject = 
 			(WCSimRootCherenkovHitTime*)(firstTrig->GetCherenkovHitTimes()->At(thephotonsid));
 		if(thehittimeobject==nullptr) cerr<<"HITTIME IS NULL"<<endl;
 		else {
 			int theparenttrackid = thehittimeobject->GetParentID();
+			Log("LWCS Tool: found hit with ParentID "+to_string(theparenttrackid),v_debug,verbosity);
 			// check if this parent track was saved. Not all particles are saved.
 			if(trackid_to_mcparticleindex->count(theparenttrackid)){
 				parentids.push_back(trackid_to_mcparticleindex->at(theparenttrackid));
 			} // else this photon may have come from e.g. an electron or gamma that wasn't recorded
+			else {
+				Log("LWCS Tool: Parent unrecorded.  Check handling.  Hit time "+to_string(digihit->GetT()), v_debug, verbosity);
+			}
 		}
 	}
 	return parentids;

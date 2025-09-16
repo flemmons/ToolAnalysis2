@@ -510,6 +510,11 @@ bool EventDisplay::Execute(){
   if(not get_ok){ Log("EventDisplay tool: Error retrieving RunNumber, true from ANNIEEvent!",v_error,verbose); return false;}
   //get_ok = m_data->Stores["ANNIEEvent"]->Get("SubRunNumber",subrunnumber);
   //if(not get_ok){ Log("EventDisplay tool: Error retrieving SubRunNumber, true from ANNIEEvent!",v_error,verbose); return false;}
+
+  //std::map<double,double> ClusterChargeBalances;
+  //m_data->Stores.at("ANNIEEvent")->Get("ClusterChargeBalances", ClusterChargeBalances);
+
+  //eventCB= ClusterChargeBalances.begin()->second;
  
   //---------------------------------------------------------------
   //------------------ Get Data related objects -------------------
@@ -596,6 +601,8 @@ bool EventDisplay::Execute(){
     get_ok = m_data->Stores.at("RecoEvent")->Get("EventCutStatus",EventCutStatus);
     if(not get_ok){ Log("EventDisplay Tool: Error retrieving EventCutStatus,true from RecoEvent!",v_error,verbose); return false; }
   }
+
+  eventCB=ASCheck(RecoDigits,0);
 
   //---------------------------------------------------------------
   //------------- Get Clustered Event information -----------------
@@ -981,7 +988,7 @@ bool EventDisplay::Execute(){
           bool passed_upper_time_cut = (threshold_time_high == -999 || digitT <= threshold_time_high);
 	  if (verbose > 2) std::cout << "EventDisplay tool: passed_lower_time_cut: "<<passed_lower_time_cut<<", passed_upper_time_cut: "<<passed_upper_time_cut<<std::endl;
           if (digitQ >= threshold && passed_lower_time_cut && passed_upper_time_cut){
-            charge[detkey] = digitQ;
+            charge[detkey] += digitQ;
             time[detkey] = digitT;
             mean_digittime += digitT;
             hitpmt_detkeys.push_back(detkey);
@@ -1820,7 +1827,7 @@ void EventDisplay::draw_event_box(){
     std::string annie_time_unit = " [ns]";
     std::string cluster_time_unit = " ns";
     std::string annie_date = "Date: ";
-    std::string trigger_str = "Trigger: ";
+    std::string trigger_str = "Angular_span(0): ";   //"Trigger: ";
     std::string annie_run_number = std::to_string(runnumber);
     std::string annie_event_number = std::to_string(evnum);
     std::string cluster_time_number = std::to_string(cluster_time);
@@ -1844,7 +1851,7 @@ void EventDisplay::draw_event_box(){
     if (!isData) annie_time_label = annie_time+annie_time_number+annie_time_unit;
     if (draw_cluster) cluster_time_label = cluster_time_str+cluster_time_number+cluster_time_unit;
     std::string lappd_hits_label = lappds_str+lappd_numbers_str+modules_str+lappd_hits_number+hits2_str;
-    std::string trigger_text_label = trigger_str+triggerword_label;
+    std::string trigger_text_label = trigger_str+std::to_string(eventCB);//triggerword_label;
     std::string date_text_label = annie_date + string_date_label;
     text_event_info->AddText(date_text_label.c_str());         //TEMPORARY: get date/time stamp from somewhere (TriggerData, as soon as implemented)
     if (!isData) text_event_info->AddText(annie_time_label.c_str());
@@ -2761,4 +2768,77 @@ void EventDisplay::ParseUserInput(std::string user_string){
 
   return;
 
+}
+
+double EventDisplay::CBCheck(std::vector<RecoDigit>*& digits) {
+    //calculate unfiltered CB
+    double total_Q = 0;
+    double total_QSquared = 0;
+    for (int i = 0; i < digits->size(); i++) {
+        //if(unfilteredDigits->at(i)->GetDigitType()==RecoDigit::PMT8inch){
+        if(digits->at(i).GetFilterStatus()){
+        double tube_charge = digits->at(i).GetCalCharge();
+        total_Q += tube_charge;
+        total_QSquared += (tube_charge * tube_charge);
+        //}
+        }
+    }
+    //FIXME: Need a method to have the 123 be equal to the number of operating detectors
+    double charge_balance = sqrt((total_QSquared) / (total_Q * total_Q) - (1. / 123.));
+    if (verbose > 4) std::cout << "EventDisplay Tool: CB: " << charge_balance << std::endl;
+
+    return charge_balance;
+}
+
+double EventDisplay::ASCheck(vector<RecoDigit>*& digits, int mode) {
+      //mode config:  0 is maximal distance; 1 is max distance from highest charge
+    
+    if (mode == 0) {
+        double max_angle = 0;
+        double angle;
+        Position i_position,j_position;
+        for (int i = 0; i < digits->size(); i++) {
+            if (use_filtered_digits && !(digits->at(i).GetFilterStatus()))continue;
+            i_position=digits->at(i).GetPosition();
+            for (int j = 0; j < digits->size(); j++) {
+                if (use_filtered_digits && !(digits->at(j).GetFilterStatus()))continue;
+                if(j==i)continue;
+                j_position=digits->at(j).GetPosition();
+                
+                angle=j_position.Angle(i_position);
+                if(angle>max_angle)max_angle=angle;
+                
+            }
+        }
+    return max_angle;
+    }
+
+    if(mode==1){
+    double max_charge=0;
+    double angle;
+    double max_angle=0;
+    int max_index=0;
+    Position max_position;
+    Position i_position;
+    for (int i = 0; i < digits->size(); i++) {
+        if(use_filtered_digits && !(digits->at(i).GetFilterStatus()))continue;
+        if(digits->at(i).GetCalCharge()>max_charge){
+            max_charge=digits->at(i).GetCalCharge();
+            max_index=i;
+            max_position=digits->at(i).GetPosition();
+        }
+    }
+
+
+    for (int i = 0; i < digits->size(); i++) {
+        if (use_filtered_digits && !(digits->at(i).GetFilterStatus()))continue;
+        if(i==max_index)continue;
+        i_position = digits->at(i).GetPosition();
+        angle=i_position.Angle(max_position);
+        if(angle>max_angle)max_angle=angle;
+    }
+    return max_angle;
+    }
+
+    return 0;
 }

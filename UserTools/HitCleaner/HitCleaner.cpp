@@ -194,6 +194,7 @@ bool HitCleaner::Execute(){
   fIsHitCleaningDone = true;
   m_data->Stores.at("RecoEvent")->Set("HitCleaningDone", fIsHitCleaningDone); 
   m_data->Stores.at("RecoEvent")->Set("HitCleaningClusters", fHitCleaningClusters);
+  CBCheck(digits,FilterDigitList);
 
   delete digits; digits = 0;
   return true;
@@ -737,4 +738,33 @@ std::vector<RecoDigit*>* HitCleaner::FilterByTruthInfo(std::vector<RecoDigit*>* 
   if(verbosity>v_message) std::cout << name << "  filter by opening angle: " << fFilterByTruthInfo->size() << std::endl;
   
   return fFilterByTruthInfo;
+}
+
+void HitCleaner::CBCheck(std::vector<RecoDigit*>* unfilteredDigits, std::vector<RecoDigit*>* filteredDigits) {
+    //calculate unfiltered CB
+    double total_Q = 0;
+    double total_QSquared = 0;
+    for (int i=0;i<unfilteredDigits->size();i++) {
+        //if(unfilteredDigits->at(i)->GetDigitType()==RecoDigit::PMT8inch){
+        double tube_charge = unfilteredDigits->at(i)->GetCalCharge();
+        total_Q += tube_charge;
+        total_QSquared += (tube_charge * tube_charge);
+        //}
+    }
+    //FIXME: Need a method to have the 123 be equal to the number of operating detectors
+    double ucharge_balance = sqrt((total_QSquared) / (total_Q * total_Q) - (1. / 123.));
+    if (verbosity > 4) std::cout << "HitCleaner Tool: Unfiltered CB: " << ucharge_balance << std::endl;
+
+    total_Q = 0;
+    total_QSquared = 0;
+    for (int i = 0; i < filteredDigits->size(); i++) {
+        //if (filteredDigits->at(i)->GetDigitType() == RecoDigit::PMT8inch) {
+        double tube_charge = filteredDigits->at(i)->GetCalCharge();
+        total_Q += tube_charge;
+        total_QSquared += (tube_charge * tube_charge);
+        //}
+    }
+    double fcharge_balance = sqrt((total_QSquared) / (total_Q * total_Q) - (1. / 123.));
+    if (verbosity > 4) std::cout << "HitCleaner Tool: filtered CB: " << fcharge_balance << std::endl;
+
 }

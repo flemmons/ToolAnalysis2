@@ -62,6 +62,8 @@ class EventDisplay: public Tool {
   void translate_xy(double vtxX, double vtxY, double vtxZ, double &xWall, double &yWall, int &status_hit, double &phi_calc);
   void find_projected_xyz(double vtxX, double vtxY, double vtxZ, double dirX, double dirY, double dirZ, double &projected_x, double &projected_y, double &projected_z);
   void ParseUserInput(std::string user_string);
+  double CBCheck(std::vector<RecoDigit>*& digits);
+  double ASCheck(std::vector<RecoDigit>*& digits,int mode);
 
  private:
 
@@ -108,6 +110,8 @@ class EventDisplay: public Tool {
     bool draw_ring_temp;
     bool draw_vertex_temp;
     bool use_filtered_digits;
+    bool only_neutron_events;
+    int delay_event_start;
 
     //define event variables
     uint32_t evnum;
@@ -215,6 +219,8 @@ class EventDisplay: public Tool {
     TText *title_mrd_side = nullptr;
     TText *title_mrd_top = nullptr;
     std::map<unsigned long, TBox*> mrd_paddles, box_mrd_paddles;
+
+    double eventCB;
 
 
     //chankey WCSim ID mappings

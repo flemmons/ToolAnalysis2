@@ -1,5 +1,15 @@
 #include "FoMCalculator.h"
-
+#include <TCanvas.h>
+#include <TH1F.h>
+#include <TApplication.h>
+#include "TH1.h"
+#include "TH1D.h"
+#include "TF1.h"
+#include "TGraph.h"
+#include "TGraphQQ.h"
+#include "TCanvas.h"
+#include "TStyle.h"
+#include "TMath.h"
 //Constructor
 FoMCalculator::FoMCalculator() {
   fVtxGeo = 0;
@@ -221,6 +231,149 @@ void FoMCalculator::ConePropertiesLnL(double vtxX, double vtxY, double vtxZ, dou
     //chi2 = (100 - chi2) * exp(-pow(pow(0.7330382, 2) - pow(phimax - phimin, 2), 2) / pow(0.7330382, 2));
     coneFoM=fom;
 }
+
+void FoMCalculator::ConePropertiesNotMine(double vtxX, double vtxY, double vtxZ, double dirX, double dirY, double dirZ, double coneEdge, double& coneFoM){
+      TH1F histo("histo", "Histogram Data", 180, 0, 180);
+      int bin_values[] = {
+2505,8874,21136,26241,25386,30997,38381,30583,32122,32460,30317,36152,38137,38999,42699,44740,39693,42021,40747,37815,36677,37250,38478,38822,43263,34860,41346,43329,42736,45265,43838,47167,39981,40529,41836,39784,42047,37567,36497,33106,28430,22309,15530,8622,5083,2514,1024,965,900,415,558,410,575,386,328,256,398,258,203,402,134,186,188,234,281,251,77,131,119,102,114,113,69,73,138,138,123,79,120,103,33,89,26,21,22,21,101,80,22,55,45,0,114,21,142,25,66,46,45,23,21,45,0,0,21,26,32,26,0,22,28,44,44,0,0,0,47,0,0,0,0,0,65,43,0,0,0,22,0,0,0,22,22,45,64,21,30,50,70,25,27,0,0,43,21,0,0,51,25,22,23,21,22,0,0,0,0,0,25,23,69,0,0,49,25,0,0,0,0,0,0,0,25,21,0,0,0,0,0,0    };
+      for (int i = 0; i < 180; i++) {
+        histo.SetBinContent(i + 1, bin_values[i]);
+    }
+      TH1F histo2("histo2", "Histogram Data", 180, 0, 180);
+        double coneEdgeLow = 21.0;  // cone edge (low side)      
+
+    double coneEdgeHigh = 3.0;  // cone edge (high side)   [muons: 3.0, electrons: 7.0]
+
+    double deltaAngle = 0.0;
+
+    double digitCharge = 0.0;
+
+    double digitPE = 0.0;
+
+    double coneCharge = 0.0;
+
+    double allCharge = 0.0;
+
+    double outerCone = -99.9;
+
+    double coef = histo.Integral(); //1000;
+
+    coneFoM = 0;
+
+    //cout << "ConePropertiesLnL Position: (" << vtxX << ", " << vtxY << ", " << vtxZ << ")" << endl;
+
+    //cout << "And Direction: (" << dirX << ", " << dirY << ", " << dirZ << ")" << endl;
+
+
+    double digitX, digitY, digitZ;
+
+    double dx, dy, dz, ds;
+
+    double px, py, pz;
+
+    double cosphi, phi, phideg;
+
+    double phimax = 0;
+
+    double phimin = 10;
+
+    double allPE = 0;
+
+    int refbin;
+    double ndof = 0;
+    double weight;
+    double chi2 = 0;
+    double P;
+
+    
+
+    for (int idigit = 0; idigit < this->fVtxGeo->GetNDigits(); idigit++) {
+
+        if (this->fVtxGeo->IsFiltered(idigit) && this->fVtxGeo->GetDigitType(idigit) == RecoDigit::PMT8inch) {
+
+            digitCharge = this->fVtxGeo->GetDigitQ(idigit);
+
+            allCharge += digitCharge;
+
+        }
+
+    }   
+
+    for (int idigit = 0; idigit < this->fVtxGeo->GetNDigits(); idigit++) {
+
+        deltaAngle = this->fVtxGeo->GetAngle(idigit) - coneEdge;
+
+        digitCharge = this->fVtxGeo->GetDigitQ(idigit);
+
+        //digitPE = this->fVtxGeo->GetDigitPE(idigit);
+
+        digitX = fVtxGeo->GetDigitX(idigit);
+
+        digitY = fVtxGeo->GetDigitY(idigit);
+
+        digitZ = fVtxGeo->GetDigitZ(idigit);
+
+        dx = digitX - vtxX;
+
+        dy = digitY - vtxY;
+
+        dz = digitZ - vtxZ;
+
+        //std::cout << "dx, dy, dz: " << dx << ", " << dy << ", " << dz << endl;
+
+        ds = pow(dx * dx + dy * dy + dz * dz, 0.5);
+
+        //std::cout << "ds: " << ds << endl;
+
+        px = dx / ds;
+
+        py = dy / ds;
+
+        pz = dz / ds;
+
+        //std::cout << "px, py, pz: " << px << ", " << py << ", " << pz << endl;
+
+        //std::cout << "dirX, dirY, DirZ: " << dirX << ", " << dirY << ", " << dirZ << endl;
+
+
+
+        cosphi = 1.0;
+        phi = 0.0;
+        //cout << "angle direction: " << dx << " " << dy << " " << dz << " = " << ds << endl;
+
+        cosphi = px * dirX + py * dirY + pz * dirZ;
+
+        //cout << "cosphi: " << cosphi << endl;
+
+        phi = acos(cosphi);
+	double phideg = phideg = phi / (TMath::Pi() / 180.0);
+
+
+
+        if (phi > phimax) phimax = phi;
+
+        if (phi < phimin) phimin = phi;
+
+
+
+        phideg = phi / (TMath::Pi() / 180);
+
+        //std::cout << "phi, phideg: " << phi << ", " << phideg << endl;
+
+        //std::cout << "vs. Zenith: " << fVtxGeo->GetZenith(idigit) << endl;
+
+        refbin = histo.FindBin(phideg);
+
+        weight = histo.GetBinContent(refbin) / coef;
+        histo2.Fill(phideg);
+    
+}
+    histo.Rebin(4);
+    histo2.Rebin(4);
+    coneFoM = 100 - 5*histo.Chi2Test(&histo2,"UW CHI2/NDF", nullptr);
+    //std::cout << "ConeFoM: " << coneFoM << endl;
+    histo2.Reset();
+} 
 
 void FoMCalculator::ConePropertiesWrong(double vtxX, double vtxY, double vtxZ, double dirX, double dirY, double dirZ, double coneEdge, double& coneFoM, TH1D angularDist, double& phimax, double& phimin) {
 
@@ -551,13 +704,14 @@ void FoMCalculator::ExtendedVertexChi2(double vtxX, double vtxY, double vtxZ, do
   // calculate figure of merit
   // =========================
 
-  this->ConePropertiesFoM(coneAngle,coneFOM);
-  this->TimePropertiesLnL(vtxTime, timeFOM);
+   this->ConePropertiesFoM(coneAngle,coneFOM);
+  //  this->ConePropertiesNotMine(vtxX, vtxY, vtxZ, dirX, dirY, dirZ, coneAngle, coneFOM);
+    this->TimePropertiesLnL(vtxTime, timeFOM);
   
   double fTimeFitWeight = this->fTimeFitWeight;
   double fConeFitWeight = this->fConeFitWeight;
   vtxFOM = (fTimeFitWeight*timeFOM+fConeFitWeight*coneFOM)/(fTimeFitWeight+fConeFitWeight);
-
+  //vtxFOM = timeFOM;
   // calculate overall figure of merit
   // =================================
   fom = vtxFOM;
@@ -566,7 +720,7 @@ void FoMCalculator::ExtendedVertexChi2(double vtxX, double vtxY, double vtxZ, do
   if( fom<-9999. ) fom = -9999.;
 
   return;
-}
+  }
 
 void FoMCalculator::ExtendedVertexChi2(double vtxX, double vtxY, double vtxZ, double dirX, double dirY, double dirZ, double coneAngle, double vtxTime, double& fom, TH1D pdf)
 {
@@ -584,7 +738,7 @@ void FoMCalculator::ExtendedVertexChi2(double vtxX, double vtxY, double vtxZ, do
 	// calculate figure of merit
 	// =========================
 
-    this->ConePropertiesLnL(vtxX, vtxY, vtxZ, dirX, dirY, dirZ, coneAngle, coneFOM, pdf, phimax, phimin);
+    this->ConePropertiesNotMine(vtxX, vtxY, vtxZ, dirX, dirY, dirZ, coneAngle, coneFOM);
 	this->TimePropertiesLnL(vtxTime, timeFOM);
 
 	double fTimeFitWeight = this->fTimeFitWeight;

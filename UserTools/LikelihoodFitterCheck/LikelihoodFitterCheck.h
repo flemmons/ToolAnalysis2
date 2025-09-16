@@ -13,6 +13,8 @@
 #include "VertexGeometry.h"
 #include "Parameters.h"
 #include "TTree.h"
+#include <TCanvas.h>
+#include <TMarker.h>
 
 class LikelihoodFitterCheck: public Tool {
 
@@ -66,6 +68,7 @@ class LikelihoodFitterCheck: public Tool {
  	
  	/// verbosity levels: if 'verbosity' < this level, the message type will be logged.
   int verbosity=-1;
+  int DrawTrueDir = 0;
 	int v_error=0;
 	int v_warning=1;
 	int v_message=2;
@@ -77,6 +80,7 @@ class LikelihoodFitterCheck: public Tool {
     bool fUsePDFFile = 0;
     std::string mode;
     TH1D pdf;
+
 	
 
 

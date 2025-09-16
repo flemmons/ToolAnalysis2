@@ -48,5 +48,14 @@ int RecoCluster::GetNDigits()
   return fDigitList.size();
 }
 
+void RecoCluster::SetClusterMode(int cmode)
+{
+  fClusterMode = cmode;
+}
+
+int RecoCluster::GetClusterMode()
+{
+  return fClusterMode;
+}
 
 

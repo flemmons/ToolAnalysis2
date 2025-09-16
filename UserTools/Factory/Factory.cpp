@@ -104,6 +104,7 @@ if (tool=="ANNIEEventBuilder") ret=new ANNIEEventBuilder;
 if (tool=="MRDDataDecoder") ret=new MRDDataDecoder;
 if (tool=="PrintADCData") ret=new PrintADCData;
 if (tool=="ClusterFinder") ret=new ClusterFinder;
+if (tool=="ClusterSearcher") ret=new ClusterSearcher;
 if (tool=="PrintRecoEvent") ret=new PrintRecoEvent;
 if (tool=="RunValidation") ret=new RunValidation;
 if (tool=="AmBeRunStatistics") ret=new AmBeRunStatistics;

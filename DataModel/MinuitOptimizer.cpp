@@ -870,7 +870,6 @@ void MinuitOptimizer::FitExtendedVertexWithMinuit() {
   fDirX = sin(fitTheta)*cos(fitPhi);
   fDirY = sin(fitTheta)*sin(fitPhi);
   fDirZ = cos(fitTheta);  
-  
   fVtxFOM = -9999.0;
   
   fPass = 0;               // flag = 0: normal termination
@@ -882,7 +881,7 @@ void MinuitOptimizer::FitExtendedVertexWithMinuit() {
   // ================
   fgFoMCalculator->ExtendedVertexChi2(fVtxX,fVtxY,fVtxZ,
                            fDirX,fDirY,fDirZ, 
-                           fConeAngle, fVtxTime,fVtxFOM);
+				      fConeAngle, fVtxTime,fVtxFOM);
                            
   // set vertex and direction
   // ========================
@@ -903,8 +902,6 @@ void MinuitOptimizer::FitExtendedVertexWithMinuit() {
   // =============  
   return;
 }
-
-
 //KEPT FOR HISTORY, BUT FITTER IS CURRENTLY NOT WORKING
 //THESE SHOULD BE MOVED TO BEFORE THE CONSTRUCTOR
 //static void corrected_vertex_chi2(int&, double*, double& f, double* par, int)

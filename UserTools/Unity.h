@@ -112,6 +112,7 @@
 #include "MRDDataDecoder.h"
 #include "PrintADCData.h"
 #include "ClusterFinder.h"
+#include "ClusterSearcher.h"
 #include "RunValidation.h"
 #include "AmBeRunStatistics.h"
 #include "SimpleTankEnergyCalibrator.h"

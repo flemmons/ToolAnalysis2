@@ -19,15 +19,24 @@ class RecoCluster : public SerialisableObject {
   void AddDigit(RecoDigit* digit);
 
   RecoDigit* GetDigit(int n);
+  
+  void SetClusterMode(int cmode);
+  
+  int GetClusterMode();
+  
+  std::vector<RecoDigit*> GetDigitList() {return this->fDigitList;}
+  
   int GetNDigits();
   
   bool Print() {
 		cout<<"Number of digits in this cluster : "<<GetNDigits()<<endl;
+		cout<<"Clustering mode : "<<GetNDigits()<<endl;
 		return true;
 	}
 
   private:
-
+  
+  int fClusterMode = -999;
   std::vector<RecoDigit*> fDigitList;
   	
   protected:

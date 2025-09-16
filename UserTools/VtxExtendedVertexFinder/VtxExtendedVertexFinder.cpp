@@ -147,7 +147,7 @@ RecoVertex* VtxExtendedVertexFinder::FitExtendedVertex(RecoVertex* myVertex) {
   myOptimizer->SetMeanTimeCalculatorType(1); //Type 1: most probable time
   myOptimizer->LoadVertexGeometry(myvtxgeo); //Load vertex geometry
   myOptimizer->LoadVertex(myVertex); //Load vertex seed
-  myOptimizer->SetFitterTimeRange(fTmin, fTmax); //Set time range to fit over 
+  myOptimizer->SetFitterTimeRange(fTmin, fTmax); //Set time range to fit over
   myOptimizer->FitExtendedVertexWithMinuit(); //scan the point position in 4D space
   // Fitted vertex must be copied to a new vertex pointer that is created in this class 
   // Once the optimizer is deleted, the fitted vertex is lost. 
@@ -193,7 +193,7 @@ RecoVertex* VtxExtendedVertexFinder::FitGridSeeds(std::vector<RecoVertex>* vSeed
     }
     else {
         std::cout << "Using new likelihood charge fit" << endl;
-        myOptimizer->FitExtendedVertexWithMinuit(pdf);
+        //myOptimizer->FitExtendedVertexWithMinuit(pdf);
     }
 
     vtxFOM = myOptimizer->GetFittedVertex()->GetFOM();

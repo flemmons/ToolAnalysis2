@@ -80,14 +80,14 @@ std::cout<<"VtxGeometryCheck adding event "<<fEventNumber<<endl;
     bool EventCutstatus = false;
     auto get_evtstatus = m_data->Stores.at("RecoEvent")->Get("EventCutStatus", EventCutstatus);
     if (!get_evtstatus) {
-        Log("Error: The VertexGeometryCheck tool could not find the Event selection status", v_error, verbosity);
-        //return false;
+      Log("Error: The VertexGeometryCheck tool could not find the Event selection status", v_error, verbosity);
+        return false;
     }
     if (!EventCutstatus) {
         Log("Message: This event doesn't pass the event selection. ", v_message, verbosity);
-        //return true;
+        return true;
     }
-
+    fzenith->Reset();
     // Read True Vertex   
     RecoVertex* truevtx = 0;
     auto get_vtx = m_data->Stores.at("RecoEvent")->Get("TrueVertex", fTrueVertex);  ///> Get digits from "RecoEvent" 
@@ -123,6 +123,10 @@ std::cout<<"VtxGeometryCheck adding event "<<fEventNumber<<endl;
         trueDirY = sin(vertheta) * sin(verphi);
         trueDirZ = cos(verphi);
     }
+   double  Truephi = acos(trueDirZ /sqrt(trueDirX*trueDirX + trueDirY*trueDirY + trueDirZ*trueDirZ))*180*(1/TMath::Pi());
+     double  Truetheta = atan2(trueDirY,trueDirX)*180*(1/TMath::Pi());
+     Log("AYHERE", Truephi, Truephi);
+     Log("AYHERE", Truetheta, Truetheta);
 
     double ConeAngle = Parameters::CherenkovAngle();
 

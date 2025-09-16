@@ -53,7 +53,8 @@ class VtxExtendedVertexFinder: public Tool {
   
   bool fUseTrueVertexAsSeed;
   bool fSeedGridFits;
-  
+  bool fUsePDFFile = 0;
+
   RecoVertex* fTrueVertex = 0;
   std::vector<RecoDigit>* fDigitList = 0;
   

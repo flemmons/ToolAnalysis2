@@ -138,7 +138,6 @@ class NeutronCheck: public Tool {
 	 vector<double> fClusterSphericity, fClusterPlanarity;
 
 	 vector<int> fClusterMode;
-	 vector<int> fClusterHits;
 
 	 vector<int> fParticleNumber;
 	 vector<int> fParticlePDG;
@@ -158,6 +157,7 @@ class NeutronCheck: public Tool {
 
 	 
 	 int fTrueNeutronMult;
+	 int fTruePrimaryNeutrons;
 	 int fTrueNeutronDelayed;
 	 int fNeutronMult;
 	 double true_Emu;

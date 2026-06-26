@@ -45,6 +45,7 @@ bool NeutronCheck::Initialise(std::string configfile, DataModel &data){
 
   NeutCheckTree->Branch("TrueNeutronMult",&fTrueNeutronMult,"trueNeutronMult/I");
   NeutCheckTree->Branch("TrueNeutronDelayed",&fTrueNeutronDelayed,"trueNeutronDel/I");
+  NeutCheckTree->Branch("TruePrimaryNeutrons",&fTruePrimaryNeutrons,"truePrimaryNeutrons/I");
   NeutCheckTree->Branch("TrueNeutCapT",&fMCNeutCapTimes);
  
 
@@ -56,7 +57,6 @@ bool NeutronCheck::Initialise(std::string configfile, DataModel &data){
   NeutCheckTree->Branch("ClusterParentPDG",&fClusterParentPDG);
   NeutCheckTree->Branch("ClusterCoincPDG",&fClusterCoincPDG);
   NeutCheckTree->Branch("ClusterParticleEnergy",&fClusterParticleEnergy);
-  NeutCheckTree->Branch("ClusterHits", &fClusterHits);
   NeutCheckTree->Branch("ClusterTime",&fClusterTime);
   NeutCheckTree->Branch("ClusterCharge",&fClusterCharge);
   NeutCheckTree->Branch("DigitCharges",&fDigitCharges);
@@ -205,11 +205,21 @@ bool NeutronCheck::Execute(){
         for (int i = 0; i < fMCParticles->size(); i++) {
             if(fMCParticles->at(i).GetPdgCode()==2112 && fMCParticles->at(i).GetParentPdg()==0) {
                 fTrueNeutronMult++;
+                fTruePrimaryNeutrons++;
                 
                 if(fMCParticles->at(i).GetStopTime()>fDelayThreshold) fTrueNeutronDelayed++;
             }
             else if(fMCParticles->at(i).GetPdgCode()==2112 && fMCParticles->at(i).GetParentPdg()!=0){
                 Log("Found non-primary neutron at particle "+to_string(i)+" with parent PDG "+ to_string(fMCParticles->at(i).GetParentPdg()), v_debug, verbosity);
+                //add secondary neutrons
+                double itime = fMCParticles->at(i).GetStartTime();
+                for (int j = i+1; j < fMCParticles->size(); j++) {
+                    double jtime = fMCParticles->at(j).GetStartTime();
+                    if(fMCParticles->at(j).GetPdgCode()==2112 && fMCParticles->at(j).GetParentPdg()!=0 && itime==jtime){
+                        fTrueNeutronMult++;
+                        if(itime>fDelayThreshold) fTrueNeutronDelayed++;
+                    }
+                }
             }
             if(fParticleInfo){
                 fParticleNumber.push_back(i);

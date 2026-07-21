@@ -16,6 +16,7 @@ bool VertexGeometryCheck::Initialise(std::string configfile, DataModel &data){
   m_variables.Get("Phi", verphi);
   m_variables.Get("StripTimePlot", StripTimePlot);
   m_variables.Get("CleanHitsOnly", cleanHitsOnly);
+  m_variables.Get("CleanEventsOnly", cleanEventsOnly);
   m_variables.Get("RecoCluster", fRecoCluster);
   fOutput_tfile = new TFile(output_filename.c_str(), "recreate");
   
@@ -31,7 +32,9 @@ bool VertexGeometryCheck::Initialise(std::string configfile, DataModel &data){
   fazimuth = new TH1D("azimuth","azimuth angle",180,0,360);
   fconeangle = new TH1D("coneangle","cone angle",90,0,90);
   fdigitcharge = new TH1D("digitcharge","digit charge", 500,0,500);
-  fdigittime = new TH1D("digittime", "digit time", 1000, -10000, 10000);
+  fdigittime = new TH1D("digittime", "digit time", 1000, -100, 900);
+  fdigittime = new TH1D("pmtdigittime", "digit time", 1000, -100, 900);
+  fdigittime = new TH1D("lappddigittime", "digit time", 1000, -100, 900);
   flappdtimesmear = new TH1D("lappdtimesmear","lappdtimesmear", 100, 0, 0.1);
   fpmttimesmear = new TH1D("pmttimesmear","pmttimesmear",100, 0, 1.0);   
   fYvsDigitTheta_all = new TH2D("YvsDigitTheta_all", "Y vs DigitTheta", 400, -200, 200, 400, -200, 200);
@@ -82,7 +85,7 @@ bool VertexGeometryCheck::Execute() {
         Log("Error: The VertexGeometryCheck tool could not find the Event selection status", v_error, verbosity);
         return false;
     }
-    if (!EventCutstatus) {
+    if (!EventCutstatus && cleanEventsOnly) {
         Log("Message: This event doesn't pass the event selection. ", v_message, verbosity);
         return true;
     }
@@ -109,6 +112,10 @@ bool VertexGeometryCheck::Execute() {
             Log("VtxExtendedVertexFinder  Tool: Error retrieving RecoDigits,no digit from the RecoEvent!", v_error, verbosity);
             return false;
         }
+        if(fDigitList->size() == 0) {
+            Log("VtxExtendedVertexFinder  Tool: No digits in the RecoEvent!", v_error, verbosity);
+            return false;
+        }
     }
     else {
         //Get focused digits from RecoCluster list.  Note that 'ClusterMode 1' must refer to dense, directional, hit-cleaned clusters for this to work.
@@ -119,11 +126,13 @@ bool VertexGeometryCheck::Execute() {
         }
         vector<RecoDigit> tempDigitList;
         for (int i = 0; i < fClusterList->size(); i++) {
-            cout << "check1" << fClusterList->at(i).GetNDigits() << ", " << fClusterList->at(i).GetDigitList().size() << endl;
+            Log("GeoCluster first digit time1: " + to_string(fClusterList->at(i).GetDigitList().at(0).GetCalTime()), v_debug, verbosity);
             fClusterList->at(i).Print();
             if (fClusterList->at(i).GetClusterMode() == 1 && fClusterList->at(i).GetTime() < 10000 && fClusterList->at(i).GetNDigits() > 0) {  //Todo: Set Time Window in config
                 tempDigitList = fClusterList->at(i).GetDigitList();
+                Log("GeoCluster first digit time2: " + to_string(tempDigitList.at(0).GetCalTime()), v_debug, verbosity);
                 fDigitList = &tempDigitList;
+                Log("GeoCluster first digit time3: " + to_string(fDigitList->at(0).GetCalTime()), v_debug, verbosity);
 
                 Log("VtxGeoCheck Tool: DigitCount, number, time: " + to_string(fDigitList->size()) + ", " + to_string(i)/* + ", "+to_string(fDigitList->at(i).GetCalTime())*/, v_debug, verbosity);
                 break;
@@ -133,12 +142,14 @@ bool VertexGeometryCheck::Execute() {
             Log("VtxExtendedVertexFinder Tool: No primary Cherenkov Cluster.  Aborting", v_error, verbosity);
             return false;
         }
+        Log("GeoCluster first digit time4: " + to_string(fDigitList->at(0).GetCalTime()), v_debug, verbosity);
     }
 
     double recoVtxX, recoVtxY, recoVtxZ, recoVtxT, recoDirX, recoDirY, recoDirZ;
     double trueVtxX, trueVtxY, trueVtxZ, trueVtxT, trueDirX, trueDirY, trueDirZ;
     double digitX, digitY, digitZ, digitT;
     double dx, dy, dz, px, py, pz, ds, cosphi, sinphi, phi, phideg;
+
 
     Position vtxPos = fTrueVertex->GetPosition();
     Direction vtxDir = fTrueVertex->GetDirection();
@@ -158,12 +169,18 @@ bool VertexGeometryCheck::Execute() {
 
     double ConeAngle = Parameters::CherenkovAngle();
 
+
+
     FoMCalculator* myFoMCalculator = new FoMCalculator();
     VertexGeometry* myvtxgeo = VertexGeometry::Instance();
+        RecoVertex* fSimpleVertex = myvtxgeo->CalcSimpleVertex(fDigitList);
+    Log("GeoCluster first digit time4a: " + to_string(fDigitList->at(0).GetCalTime()), v_debug, verbosity);
     myvtxgeo->LoadDigits(fDigitList);
+    Log("GeoCluster first digit time4b: " + to_string(fDigitList->at(0).GetCalTime()), v_debug, verbosity);
     myFoMCalculator->LoadVertexGeometry(myvtxgeo); //Load vertex geometry
     int nhits = myvtxgeo->GetNDigits();
-    myvtxgeo->CalcExtendedResiduals(trueVtxX, trueVtxY, trueVtxZ, trueVtxT, trueDirX, trueDirY, trueDirZ);
+    //myvtxgeo->CalcExtendedResiduals(trueVtxX, trueVtxY, trueVtxZ, trueVtxT, trueDirX, trueDirY, trueDirZ);
+    myvtxgeo->CalcExtendedResiduals(trueVtxX, trueVtxY, trueVtxZ, fSimpleVertex->GetTime(), trueDirX, trueDirY, trueDirZ);
     double meantime = myFoMCalculator->FindSimpleTimeProperties(ConeAngle);
     fmeanres->Fill(meantime);
     double fom = -999.999 * 100;
@@ -172,13 +189,15 @@ bool VertexGeometryCheck::Execute() {
     int currentLAPPD = 0;
     
     int iStripHit = 0;
-    std::cout << "VGCheck entering for loop\n";
+    Log("VGCheck entering for loop\n", v_debug, verbosity);
+    Log("GeoCluster first digit time5: " + to_string(fDigitList->at(0).GetCalTime()), v_debug, verbosity);
     for (int n = 0; n < nhits; n++) {
         if (cleanHitsOnly && !(fDigitList->at(n).GetFilterStatus())) continue;
         digitX = fDigitList->at(n).GetPosition().X();
         digitY = fDigitList->at(n).GetPosition().Y();
         digitZ = fDigitList->at(n).GetPosition().Z();
         digitT = fDigitList->at(n).GetCalTime();
+
         dx = digitX - trueVtxX;
         dy = digitY - trueVtxY;
         dz = digitZ - trueVtxZ;
@@ -225,7 +244,6 @@ bool VertexGeometryCheck::Execute() {
         Log("VGCheck: Digit's time, delta, ltrack, lphoton: "+to_string(digitT)+", "+to_string(myvtxgeo->GetDelta(n))+", "+to_string(myvtxgeo->GetDistTrack(n))+", "+to_string(myvtxgeo->GetDistPhoton(n)),v_debug,verbosity);
         if (myvtxgeo->GetDigitType(n) == RecoDigit::lappd_v0) flappdtimesmear->Fill(Parameters::TimeResolution(RecoDigit::lappd_v0, myvtxgeo->GetDigitQ(n)));
         if (myvtxgeo->GetDigitType(n) == RecoDigit::PMT8inch) fpmttimesmear->Fill(Parameters::TimeResolution(RecoDigit::PMT8inch, myvtxgeo->GetDigitQ(n)));
-        std::cout << "VGCheck " << n << endl;
         if (StripTimePlot > 0) {
             if (fDigitList->at(n).GetDigitType() == RecoDigit::lappd_v0 && fDigitList->at(n).GetCalTime()>0 /* && fDigitList->at(n).GetDetectorID() == StripTimePlot*/) {
                 if (fDigitList->at(n).GetDetectorID() != currentLAPPD)
@@ -242,13 +260,13 @@ bool VertexGeometryCheck::Execute() {
                 }
                 StripHits1->Fill(fDigitList->at(n).GetPosition().X(), fDigitList->at(n).GetCalTime() * 1000/*, fDigitList->at(n).GetCalCharge()*/);
                 iStripHit++;
-                std::cout << "VGCheck striphit";
                 
             }
         }
     }
 
     delete myFoMCalculator;
+    delete fSimpleVertex;
 
   return true;
 }

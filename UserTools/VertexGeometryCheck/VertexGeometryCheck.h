@@ -70,6 +70,7 @@ class VertexGeometryCheck: public Tool {
   double vertheta = -999, verphi = -999;
   int StripTimePlot = -1;
   bool cleanHitsOnly = 0;
+  bool cleanEventsOnly = 0;
   bool fRecoCluster;
 
 

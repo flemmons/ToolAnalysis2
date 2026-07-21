@@ -64,7 +64,7 @@ bool VtxExtendedVertexFinder::Execute(){
   // ANNIE Event number
   m_data->Stores.at("ANNIEEvent")->Get("EventNumber",fEventNumber);
   
-  std::cout<<"event number = "<<fEventNumber<<std::endl;
+  Log("event number = " + to_string(fEventNumber), v_debug, verbosity);
 	
   if(!fRecoCluster){
   // Retrive digits from RecoEvent
@@ -83,14 +83,12 @@ bool VtxExtendedVertexFinder::Execute(){
       }
       
       for(int i =0; i<fClusterList->size(); i++){
-          cout<<"check1"<<fClusterList->at(i).GetNDigits()<<", "<<fClusterList->at(i).GetDigitList().size() << endl;
-          fClusterList->at(i).Print();
       if(fClusterList->at(i).GetClusterMode()==1 && fClusterList->at(i).GetTime()<10000 && fClusterList->at(i).GetNDigits()>0) {  //Todo: Set Time Window in config
-          cout<<"check2 "<<fClusterList->at(i).GetDigitList().size()<<endl;
+
           tempDigitList=fClusterList->at(i).GetDigitList();
           fDigitList=&tempDigitList;
-          cout<<"check3"<<endl;
-                  Log("VtxEVF Tool: DigitCount, number, time: "+to_string(fDigitList->size())+", "+to_string(i)/* + ", "+to_string(fDigitList->at(i).GetCalTime())*/,v_debug,verbosity);
+ 
+                  Log("VtxEVF Tool: DigitCount, number, time: "+to_string(fDigitList->size())+", "+to_string(i) + ", "+to_string(fClusterList->at(i).GetTime()),v_debug,verbosity);
                   break;
       }
       }
@@ -103,6 +101,7 @@ bool VtxExtendedVertexFinder::Execute(){
   // Load digits to VertexGeometry
   myvtxgeo = VertexGeometry::Instance();
   myvtxgeo->LoadDigits(fDigitList);
+  Log("VtxExtendedVertexFinder Tool: VEVFCluster first time: " + to_string(fDigitList->at(0).GetCalTime()), v_debug, verbosity);
   // Do extended vertex (muon track) reconstruction using MC truth information
   if( fUseTrueVertexAsSeed ){
   Log("VtxExtendedVertexFinder Tool: Run vertex reconstruction using MC truth information",v_message,verbosity);
@@ -116,7 +115,7 @@ bool VtxExtendedVertexFinder::Execute(){
     Position muonstartpos = fTrueVertex->GetPosition();
     double muonstarttime = fTrueVertex->GetTime();
     Direction muondirection = fTrueVertex->GetDirection();
-    std::cout << "VtxExtendedVertexFinder Tool: Printing muon info going into Minuit" << std::endl;
+    Log("VtxExtendedVertexFinder Tool: Printing muon info going into Minuit", v_debug, verbosity);
     logmessage = "  trueVtx = (" +to_string(muonstartpos.X()) + ", " + to_string(muonstartpos.Y()) + ", " + to_string(muonstartpos.Z()) +", "+to_string(muonstarttime)+ "\n"
               + "           " +to_string(muondirection.X()) + ", " + to_string(muondirection.Y()) + ", " + to_string(muondirection.Z()) + ") " + "\n";
     

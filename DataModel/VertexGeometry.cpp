@@ -201,6 +201,8 @@ void VertexGeometry::LoadDigits(std::vector<RecoDigit>* vDigitList)
   fDigitList = vDigitList;
   fNDigits = fDigitList->size();
   
+cout<<"VGCluster first time0: "<<vDigitList->at(0).GetCalTime()<<endl;
+
   // sanity checks
   // =============
   if( fNDigits<=0 ){
@@ -233,7 +235,12 @@ void VertexGeometry::LoadDigits(std::vector<RecoDigit>* vDigitList)
   double SFwx = 0.0;
   double SFw = 0.0;
   
+
+
+  
   for( int idigit=0; idigit<fNDigits; idigit++ ){
+
+
 
     RecoDigit recoDigit = fDigitList->at(idigit);
     fDigitType[idigit] = recoDigit.GetDigitType();
@@ -289,6 +296,7 @@ void VertexGeometry::LoadDigits(std::vector<RecoDigit>* vDigitList)
       SFw += 1.0;
     }
   }
+
 
   if( Sw>0.0 ){
     fTotalQ = Swx;
@@ -550,6 +558,7 @@ void VertexGeometry::CalcResiduals(double vtxX, double vtxY, double vtxZ, double
       Lphoton = Lpoint;
       Lscatter = Lpoint*(phi-theta);
     }
+    
 
     double fC = Parameters::SpeedOfLight();
     double fVmu = fC;

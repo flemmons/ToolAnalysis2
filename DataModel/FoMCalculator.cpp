@@ -54,7 +54,7 @@ void FoMCalculator::TimePropertiesLnL(double vtxTime, double& vtxFOM)
   // ================
   for( int idigit=0; idigit<this->fVtxGeo->GetNDigits(); idigit++ ){    
     	int detType = this->fVtxGeo->GetDigitType(idigit); 
-      delta=fVtxGeo->GetExtendedResidual(idigit);                  //delta = this->fVtxGeo->GetDelta(idigit)/* - vtxTime*/;
+      delta=fVtxGeo->GetExtendedResidual(idigit)+5;                  //delta = this->fVtxGeo->GetDelta(idigit)/* - vtxTime*/;
       //cout<<"delta check: delta, vtxTime, digitdelta, digittime: "<<delta<<", "<<vtxTime<<", "<<fVtxGeo->GetDelta(idigit)<<", "<<fVtxGeo->GetDigitT(idigit) << endl;
       sigma = this->fVtxGeo->GetDeltaSigma(idigit);
       type = this->fVtxGeo->GetDigitType(idigit);

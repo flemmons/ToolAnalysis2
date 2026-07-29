@@ -30,11 +30,21 @@ bool VertexGeometryCheck::Initialise(std::string configfile, DataModel &data){
   flphoton = new TH1D("lphoton","photon path length",1000,0,1000);
   fzenith = new TH1D("zenith","zenith angle",180,0,180);
   fazimuth = new TH1D("azimuth","azimuth angle",180,0,360);
+  // Reco-vertex counterparts
+  flappdextendedtresReco = new TH1D("lappdextendedtres_reco","lappd Extended time residual (Reco Vertex)", 1000,-10000,10000);
+  fpmtextendedtresReco = new TH1D("pmtextendedtres_reco","pmt Extended time residual (Reco Vertex)",1000, -10, 30);
+  fpointtresReco = new TH1D("pointres_reco","Point time residual (Reco Vertex)",1000,-10,30);
+  fdeltaReco = new TH1D("delta_reco", "delta (Reco Vertex)", 1000, -10, 30);
+  fmeanresReco = new TH1D("meanres_reco","Mean time residual (Reco Vertex)",1000, -10, 30);
+  fltrackReco = new TH1D("ltrack_reco","track path length (Reco Vertex)",1000,0,1000);
+  flphotonReco = new TH1D("lphoton_reco","photon path length (Reco Vertex)",1000,0,1000);
+  fzenithReco = new TH1D("zenith_reco","zenith angle (Reco Vertex)",180,0,180);
+  fazimuthReco = new TH1D("azimuth_reco","azimuth angle (Reco Vertex)",180,0,360);
   fconeangle = new TH1D("coneangle","cone angle",90,0,90);
   fdigitcharge = new TH1D("digitcharge","digit charge", 500,0,500);
   fdigittime = new TH1D("digittime", "digit time", 1000, -100, 900);
-  fdigittime = new TH1D("pmtdigittime", "digit time", 1000, -100, 900);
-  fdigittime = new TH1D("lappddigittime", "digit time", 1000, -100, 900);
+  fpmtdigittime = new TH1D("pmtdigittime", "digit time", 1000, -100, 900);
+  flappddigittime = new TH1D("lappddigittime", "digit time", 1000, -100, 900);
   flappdtimesmear = new TH1D("lappdtimesmear","lappdtimesmear", 100, 0, 0.1);
   fpmttimesmear = new TH1D("pmttimesmear","pmttimesmear",100, 0, 1.0);   
   fYvsDigitTheta_all = new TH2D("YvsDigitTheta_all", "Y vs DigitTheta", 400, -200, 200, 400, -200, 200);
@@ -92,9 +102,16 @@ bool VertexGeometryCheck::Execute() {
 
     // Read True Vertex   
     RecoVertex* truevtx = 0;
-    auto get_vtx = m_data->Stores.at("RecoEvent")->Get("TrueVertex", fTrueVertex);  ///> Get digits from "RecoEvent" 
-    if (!get_vtx) {
+    auto get_vtxt = m_data->Stores.at("RecoEvent")->Get("TrueVertex", fTrueVertex);  ///> Get digits from "RecoEvent" 
+    if (!get_vtxt) {
         Log("VertexGeometryCheck  Tool: Error retrieving TrueVertex! ", v_error, verbosity);
+        return true;
+    }
+
+    // Read Reco Vertex
+    auto get_vtxr = m_data->Stores.at("RecoEvent")->Get("ExtendedVertex", fRecoVertex);  ///> Get digits from "RecoEvent" 
+    if (!get_vtxr) {
+        Log("VertexGeometryCheck  Tool: Error retrieving RecoVertex! ", v_error, verbosity);
         return true;
     }
 
@@ -124,7 +141,7 @@ bool VertexGeometryCheck::Execute() {
             Log("VtxExtendedVertexFinder Tool: Error retrieving RecoClusters, no clusters from the RecoEvent!", v_error, verbosity);
             return false;
         }
-        vector<RecoDigit> tempDigitList;
+        //vector<RecoDigit> tempDigitList;
         for (int i = 0; i < fClusterList->size(); i++) {
             Log("GeoCluster first digit time1: " + to_string(fClusterList->at(i).GetDigitList().at(0).GetCalTime()), v_debug, verbosity);
             fClusterList->at(i).Print();
@@ -167,29 +184,40 @@ bool VertexGeometryCheck::Execute() {
         trueDirZ = cos(verphi);
     }
 
+    Position recoVtxPos = fRecoVertex->GetPosition();
+    Direction recoVtxDir = fRecoVertex->GetDirection();
+    recoVtxX = recoVtxPos.X();
+    recoVtxY = recoVtxPos.Y();
+    recoVtxZ = recoVtxPos.Z();
+    recoVtxT = fRecoVertex->GetTime();
+    recoDirX = recoVtxDir.X();
+    recoDirY = recoVtxDir.Y();
+    recoDirZ = recoVtxDir.Z();
+    recoVtxFoM = fRecoVertex->GetFOM();
+
     double ConeAngle = Parameters::CherenkovAngle();
 
 
 
-    FoMCalculator* myFoMCalculator = new FoMCalculator();
+    FoMCalculator myFoMCalculator;
     VertexGeometry* myvtxgeo = VertexGeometry::Instance();
         RecoVertex* fSimpleVertex = myvtxgeo->CalcSimpleVertex(fDigitList);
-    Log("GeoCluster first digit time4a: " + to_string(fDigitList->at(0).GetCalTime()), v_debug, verbosity);
-    myvtxgeo->LoadDigits(fDigitList);
-    Log("GeoCluster first digit time4b: " + to_string(fDigitList->at(0).GetCalTime()), v_debug, verbosity);
-    myFoMCalculator->LoadVertexGeometry(myvtxgeo); //Load vertex geometry
+    //Log("GeoCluster first digit time4a: " + to_string(fDigitList->at(0).GetCalTime()), v_debug, verbosity);
+    //myvtxgeo->LoadDigits(fDigitList);
+    //Log("GeoCluster first digit time4b: " + to_string(fDigitList->at(0).GetCalTime()), v_debug, verbosity);
+    myFoMCalculator.LoadVertexGeometry(myvtxgeo); //Load vertex geometry
     int nhits = myvtxgeo->GetNDigits();
     //myvtxgeo->CalcExtendedResiduals(trueVtxX, trueVtxY, trueVtxZ, trueVtxT, trueDirX, trueDirY, trueDirZ);
     myvtxgeo->CalcExtendedResiduals(trueVtxX, trueVtxY, trueVtxZ, fSimpleVertex->GetTime(), trueDirX, trueDirY, trueDirZ);
-    double meantime = myFoMCalculator->FindSimpleTimeProperties(ConeAngle);
+    double meantime = myFoMCalculator.FindSimpleTimeProperties(ConeAngle);
     fmeanres->Fill(meantime);
     double fom = -999.999 * 100;
-    myFoMCalculator->TimePropertiesLnL(meantime, fom);
+    myFoMCalculator.TimePropertiesLnL(meantime, fom);
     std::string stripPlotName;
     int currentLAPPD = 0;
     
     int iStripHit = 0;
-    Log("VGCheck entering for loop\n", v_debug, verbosity);
+    Log("VGCheck entering for loop with " + to_string(fDigitList->size()) + " hits", v_debug, verbosity);
     Log("GeoCluster first digit time5: " + to_string(fDigitList->at(0).GetCalTime()), v_debug, verbosity);
     for (int n = 0; n < nhits; n++) {
         if (cleanHitsOnly && !(fDigitList->at(n).GetFilterStatus())) continue;
@@ -241,6 +269,8 @@ bool VertexGeometryCheck::Execute() {
         fconeangle->Fill(myvtxgeo->GetConeAngle(n)); //
         fdigitcharge->Fill(myvtxgeo->GetDigitQ(n));
         fdigittime->Fill(digitT);
+        if(fDigitList->at(n).GetDigitType() == RecoDigit::PMT8inch) fpmtdigittime->Fill(digitT);
+        if(fDigitList->at(n).GetDigitType() == RecoDigit::lappd_v0) flappddigittime->Fill(digitT);
         Log("VGCheck: Digit's time, delta, ltrack, lphoton: "+to_string(digitT)+", "+to_string(myvtxgeo->GetDelta(n))+", "+to_string(myvtxgeo->GetDistTrack(n))+", "+to_string(myvtxgeo->GetDistPhoton(n)),v_debug,verbosity);
         if (myvtxgeo->GetDigitType(n) == RecoDigit::lappd_v0) flappdtimesmear->Fill(Parameters::TimeResolution(RecoDigit::lappd_v0, myvtxgeo->GetDigitQ(n)));
         if (myvtxgeo->GetDigitType(n) == RecoDigit::PMT8inch) fpmttimesmear->Fill(Parameters::TimeResolution(RecoDigit::PMT8inch, myvtxgeo->GetDigitQ(n)));
@@ -265,8 +295,31 @@ bool VertexGeometryCheck::Execute() {
         }
     }
 
-    delete myFoMCalculator;
-    delete fSimpleVertex;
+    // Recompute residuals/angles using the reconstructed vertex, and fill the
+    // reco-vertex counterparts of the true-vertex histograms above.
+    if(recoVtxFoM < 0.0) {
+        Log("Reco vertex FoM is negative, skipping reco-vertex histograms", v_warning, verbosity);
+        return true;
+    }
+    myvtxgeo->CalcExtendedResiduals(recoVtxX, recoVtxY, recoVtxZ, recoVtxT, recoDirX, recoDirY, recoDirZ);
+    double meantimereco = myFoMCalculator.FindSimpleTimeProperties(ConeAngle);
+    fmeanresReco->Fill(meantimereco);
+    double fomreco = -999.999 * 100;
+    myFoMCalculator.TimePropertiesLnL(meantimereco, fomreco);
+
+    for (int n = 0; n < nhits; n++) {
+        if (cleanHitsOnly && !(fDigitList->at(n).GetFilterStatus())) continue;
+        fdeltaReco->Fill(myvtxgeo->GetDelta(n));
+        fpointtresReco->Fill(myvtxgeo->GetPointResidual(n));
+        if (myvtxgeo->GetDigitType(n) == RecoDigit::lappd_v0) flappdextendedtresReco->Fill(myvtxgeo->GetExtendedResidual(n));
+        if (myvtxgeo->GetDigitType(n) == RecoDigit::PMT8inch) fpmtextendedtresReco->Fill(myvtxgeo->GetExtendedResidual(n));
+        fltrackReco->Fill(myvtxgeo->GetDistTrack(n)); //cm
+        flphotonReco->Fill(myvtxgeo->GetDistPhoton(n)); //cm
+        fzenithReco->Fill(myvtxgeo->GetZenith(n));
+        fazimuthReco->Fill(myvtxgeo->GetAzimuth(n));
+    }
+
+    //delete fSimpleVertex;
 
   return true;
 }

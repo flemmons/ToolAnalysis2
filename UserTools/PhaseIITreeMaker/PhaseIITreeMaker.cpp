@@ -1184,10 +1184,12 @@ bool PhaseIITreeMaker::Execute(){
     //DIGITS
 
     //CLUSTERS
+    if(!isData){
     bool goodMCParticles = m_data->Stores.at("ANNIEEvent")->Get("MCParticles", fMCParticles);
     if (!goodMCParticles) {
         std::cerr << "BackTracker: no MCParticles in the ANNIEEvent!" << endl;
         return false;
+    }
     }
     if(RecoCluster_fill) CSCheck();
     //CLUSTERS
@@ -1937,13 +1939,16 @@ void PhaseIITreeMaker::LoadDigitHits(){
 //CLUSTERS
 void PhaseIITreeMaker::CSCheck() {
 
+    if(!isData)
     std::map<int, int>* fMCParticleIndexMap;
 
     Log("PhaseIITreeMakerTool: Cluster Check!", v_message, verbosity);
    
     fTrueNeutronMult = 0;
     fTrueNeutronDelayed = 0;
-    Log("PhaseIITreeMakerTool Tool: Scanning " + to_string(fMCParticles->size()) + " MCParticles", v_debug, verbosity);
+    if(!isData){
+        Log("PhaseIITreeMakerTool Tool: Scanning " + to_string(fMCParticles->size()) + " MCParticles", v_debug, verbosity);
+
     for (int i = 0; i < fMCParticles->size(); i++) {
         if (fMCParticles->at(i).GetPdgCode() == 2112 && fMCParticles->at(i).GetParentPdg() == 0) {
             fTrueNeutronMult++;
@@ -1973,7 +1978,7 @@ void PhaseIITreeMaker::CSCheck() {
 
     }
 
-
+    }
 
     bool cluster_status = m_data->Stores.at("RecoEvent")->Get("RecoClusters", fRecoClusters);
     if (!cluster_status) {
@@ -2005,6 +2010,7 @@ void PhaseIITreeMaker::CSCheck() {
         fRClusterNum.push_back(i);
         fRClusterCount++;
         Log("Checkd", v_debug, verbosity);
+        if(!isData){
         bestParent = fRecoClusters->at(i).calcBestParent();
         //bestParent = fRecoClusters->at(i).GetBestParent();
         Log("Check 1: Particle ID " + to_string(bestParent), v_debug, verbosity);
@@ -2052,6 +2058,7 @@ void PhaseIITreeMaker::CSCheck() {
         if (fRClusterPDG.at(fRClusterPDG.size() - 1) == 2112) {
             fNeutronMult++;
 
+        }
         }
 
         fRClusterNDigits.push_back(fRecoClusters->at(i).GetNDigits());
@@ -2727,6 +2734,8 @@ void PhaseIITreeMaker::FillWeightInfo() {
     fnucleoninexsec = fflux_weights["nucleoninexsec_FluxUnisim"];
     fnucleonqexsec = fflux_weights["nucleonqexsec_FluxUnisim"];
     fnucleontotxsec = fflux_weights["nucleontotxsec_FluxUnisim"];
+  } else {
+    Log("PhaseIITreeMaker tool: Did not find xsec_weights or flux_weights. Continuing building remaining tree",v_message,verbosity);
   }
 }
 

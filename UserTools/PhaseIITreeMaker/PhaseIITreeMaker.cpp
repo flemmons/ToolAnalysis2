@@ -706,13 +706,12 @@ bool PhaseIITreeMaker::Execute(){
   if (LAPPDData_fill) this->LoadLAPPDData();
 
   //  If only clean events are built, return true for dirty events
-  if(fillCleanEventsOnly){
     auto get_flagsapp = m_data->Stores.at("RecoEvent")->Get("EventFlagApplied",fEventStatusApplied);
     auto get_flags = m_data->Stores.at("RecoEvent")->Get("EventFlagged",fEventStatusFlagged); 
     //auto get_cutstatus = m_data->Stores.at("RecoEvent")->Get("EventCutStatus",fEventCutStatus);
     if(!get_flagsapp || !get_flags) {
       Log("PhaseITreeMaker tool: No Event status applied or flagged bitmask!!", v_error, verbosity);
-      return false;	
+      if(fillCleanEventsOnly)return false;	
     }
     // check if event passes the cut
     if((fEventStatusFlagged) != 0) {

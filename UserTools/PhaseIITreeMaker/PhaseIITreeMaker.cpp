@@ -719,7 +719,6 @@ bool PhaseIITreeMaker::Execute(){
       Log("PhaseIITreeMaker Tool: Event was flagged with one of the active cuts.",v_debug, verbosity);
       return true;	
     }
-  }
 
   if(TankClusterProcessing){
     Log("PhaseIITreeMaker Tool: Beginning Tank cluster processing",v_debug,verbosity);

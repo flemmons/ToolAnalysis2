@@ -717,7 +717,7 @@ bool PhaseIITreeMaker::Execute(){
     if((fEventStatusFlagged) != 0) {
     //  if (!fEventCutStatus){
       Log("PhaseIITreeMaker Tool: Event was flagged with one of the active cuts.",v_debug, verbosity);
-      return true;	
+      if(fillCleanEventsOnly)return true;	
     }
 
   if(TankClusterProcessing){

@@ -476,6 +476,8 @@ class PhaseIITreeMaker: public Tool {
   double fRecoAngle;
   double fRecoPhi;
   int fRecoStatus;
+  double fClassicMuonEnergy;
+  double fClassicMuonPt;
   
   // ************* Difference between MC and Truth *********** //
   double fDeltaVtxX; 

@@ -413,6 +413,8 @@ bool PhaseIITreeMaker::Initialise(std::string configfile, DataModel &data){
       fPhaseIITrigTree->Branch("recoPhi",&fRecoPhi,"recoPhi/D");
       fPhaseIITrigTree->Branch("recoVtxFOM",&fRecoVtxFOM,"recoVtxFOM/D");
       fPhaseIITrigTree->Branch("recoStatus",&fRecoStatus,"recoStatus/I");
+      fPhaseIITrigTree->Branch("classicMuonEnergy",&fClassicMuonEnergy,"classicMuonEnergy/D");
+      fPhaseIITrigTree->Branch("classicMuonPt",&fClassicMuonPt,"classicMuonPt/D");
     }
 
     //Michael's Simple Reconstruction
@@ -2275,7 +2277,13 @@ bool PhaseIITreeMaker::FillTankRecoInfo() {
     Log("Warning: The PhaseITreeMaker tool could not find ExtendedVertex. Continuing to build tree", v_message, verbosity);
     got_reco_info = false;
   } else {
-    fRecoVtxX = recovtx->GetPosition().X();
+    auto get_classic_energy = m_data->Stores.at("RecoEvent")->Get("classicRecoEnergy",fClassicMuonEnergy);
+    if(!get_classic_energy) {
+      Log("Warning: The PhaseITreeMaker tool could not find classicRecoEnergy. Continuing to build tree", v_message, verbosity);
+    }else{
+      m_data->Stores.at("RecoEvent")->Get("classicTransverseP",fClassicMuonPt);
+    }
+      fRecoVtxX = recovtx->GetPosition().X();
     fRecoVtxY = recovtx->GetPosition().Y();
     fRecoVtxZ = recovtx->GetPosition().Z();
     fRecoVtxTime = recovtx->GetTime();
